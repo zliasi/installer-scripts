@@ -1,0 +1,51 @@
+# installer-scripts
+
+Personal installer scripts for HPC software.
+
+## Scripts
+
+- **generate-gpaw-siteconfig.sh** - Generate siteconfig.py for GPAW compilation
+- **install-avogadro.sh** - Build and install Avogadro (molecular visualization)
+- **install-cfour.sh** - Install CFOUR (quantum chemistry) with MPI support
+- **install-dalton.sh** - Install Dalton (quantum chemistry) with precision options
+- **install-dirac.sh** - Build and install DIRAC (quantum chemistry) with CMake
+- **install-gpaw.sh** - Install GPAW (density functional theory) with Python venv
+- **install-gxtb.sh** - Install g-xTB (extended tight-binding) from binaries
+- **install-libxc.sh** - Install libxc (exchange-correlation library)
+- **install-molden.sh** - Build and install MOLDEN (molecular visualization)
+- **install-nwchem.sh** - Build and install NWChem (quantum chemistry)
+- **install-openblas.sh** - Install OpenBLAS (linear algebra library)
+- **install-openmpi.sh** - Install OpenMPI (message passing interface)
+- **install-orca.sh** - Install Orca (quantum chemistry) from precompiled binaries
+- **install-std2.sh** - Build and install std2 (quantum chemistry)
+- **install-xtb.sh** - Install xtb (extended tight-binding) from precompiled binaries
+
+## Directory Structure
+
+Scripts expect the following directory layout:
+
+```
+~/software/
+├── src/
+│   └── external/              # Source archives and downloaded sources
+└── build/
+    ├── avogadro/VERSION/
+    ├── cfour/VERSION/
+    ├── dalton/VERSION-PRECISION/
+    ├── dirac/VERSION/
+    ├── gpaw/VERSION/
+    │   ├── venv/              # Python virtual environment
+    │   └── share/             # GPAW data files
+    ├── gxtb/VERSION/
+    ├── libxc/VERSION/
+    ├── molden/VERSION/
+    ├── nwchem/VERSION/
+    ├── openblas/VERSION-PRECISION/
+    ├── openmpi/VERSION-PRECISION/
+    │   └── default -> VERSION-PRECISION (symlink)
+    ├── orca/VERSION/
+    ├── std2/VERSION/
+    └── xtb/VERSION/
+```
+
+Default symlinks (e.g., `openmpi/default`) allow version switching without updating environment variables.
