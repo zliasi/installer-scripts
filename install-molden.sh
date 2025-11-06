@@ -280,7 +280,7 @@ archive_source() {
   local archive="${SRC_DIR}/molden${PATH_VERSION}.tar.gz"
 
   echo "Creating source archive..."
-  tar -czf "${archive}" -C "${SRC_DIR}" "molden-${PATH_VERSION}" || {
+  tar -czf "${archive}" -C "${SRC_DIR}" "molden${PATH_VERSION}" || {
     echo "Warning: Failed to create archive" >&2
   }
 
