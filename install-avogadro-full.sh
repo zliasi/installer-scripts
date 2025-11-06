@@ -578,6 +578,9 @@ configure_lib_build() {
     glew_args+=("-DGLEW_LIBRARIES=${GLEW_LIBRARIES}")
     echo "  Using GLEW_INCLUDE_DIRS=${GLEW_INCLUDE_DIRS}"
     echo "  Using GLEW_LIBRARIES=${GLEW_LIBRARIES}"
+  else
+    echo "  GLEW not available, disabling GLEW in cmake"
+    glew_args+=("-DCMAKE_DISABLE_FIND_PACKAGE_GLEW=ON")
   fi
 
   cmake "${LIB_SOURCE_DIR}" \
@@ -660,6 +663,9 @@ configure_app_build() {
     glew_args+=("-DGLEW_LIBRARIES=${GLEW_LIBRARIES}")
     echo "  Using GLEW_INCLUDE_DIRS=${GLEW_INCLUDE_DIRS}"
     echo "  Using GLEW_LIBRARIES=${GLEW_LIBRARIES}"
+  else
+    echo "  GLEW not available, disabling GLEW in cmake"
+    glew_args+=("-DCMAKE_DISABLE_FIND_PACKAGE_GLEW=ON")
   fi
 
   cmake "${APP_SOURCE_DIR}" \
