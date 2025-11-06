@@ -410,11 +410,11 @@ configure_lib_build() {
   fi
 
   echo "Configuring Avogadro libraries with CMake..."
-  PKG_CONFIG_PATH="${pkg_config_path}" cmake "${LIB_SOURCE_DIR}" \
+  echo "CMAKE_PREFIX_PATH=${cmake_prefix_path}"
+  cmake "${LIB_SOURCE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="${cmake_prefix_path}" \
-    -DCMAKE_MODULE_PATH="$(dirname "$(readlink -f "$0")")" \
     -DSpglib_DIR="${SPGLIB_BUILD_DIR}" \
     -DENABLE_TESTING=ON || {
     echo "Error: CMake configuration failed" >&2
@@ -476,11 +476,11 @@ configure_app_build() {
   fi
 
   echo "Configuring Avogadro application with CMake..."
-  PKG_CONFIG_PATH="${pkg_config_path}" cmake "${APP_SOURCE_DIR}" \
+  echo "CMAKE_PREFIX_PATH=${cmake_prefix_path}"
+  cmake "${APP_SOURCE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="${cmake_prefix_path}" \
-    -DCMAKE_MODULE_PATH="$(dirname "$(readlink -f "$0")")" \
     -DSpglib_DIR="${SPGLIB_BUILD_DIR}" \
     -DENABLE_TESTING=ON || {
     echo "Error: CMake configuration failed" >&2
