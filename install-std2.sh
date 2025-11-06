@@ -270,14 +270,24 @@ compile_project() {
 install_executable() {
   cd "${SOURCE_DIR}" || return 1
 
-  export LD_LIBRARY_PATH="${SOURCE_DIR}/libcint/build:${LD_LIBRARY_PATH:-}"
-
   echo "Installing std2 to ${BUILD_DIR}..."
 
-  make PREFIX="${BUILD_DIR}" FC=ifx CC=icx install || {
-    echo "Error: Installation failed" >&2
+  # Create bin directory
+  mkdir -p "${BUILD_DIR}/bin" || {
+    echo "Error: Failed to create bin directory" >&2
     return 1
   }
+
+  # Copy executable to installation directory
+  if [[ -f "${SOURCE_DIR}/std2" ]]; then
+    cp "${SOURCE_DIR}/std2" "${BUILD_DIR}/bin/std2" || {
+      echo "Error: Failed to copy std2 executable" >&2
+      return 1
+    }
+  else
+    echo "Error: std2 executable not found at ${SOURCE_DIR}/std2" >&2
+    return 1
+  fi
 }
 
 # Create default symlink to installed version
