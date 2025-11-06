@@ -42,10 +42,10 @@ Scripts expect the following directory layout:
     ├── nwchem/VERSION/
     ├── openblas/VERSION-PRECISION/
     ├── openmpi/VERSION-PRECISION/
-    │   └── default -> VERSION-PRECISION (symlink)
+    │   └── latest -> VERSION-PRECISION (symlink)
     ├── orca/VERSION/
     ├── std2/VERSION/
     └── xtb/VERSION/
 ```
 
-Default symlinks (e.g., `openmpi/default`) allow version switching without updating environment variables.
+Latest symlinks (e.g., `openmpi/latest`) allow version switching without updating environment variables.
