@@ -189,6 +189,29 @@ clone_repository() {
   }
 }
 
+# Patch Makefile for compatibility with Intel oneAPI
+#
+# Exit codes:
+#   0 - Success
+#   1 - Patch failed
+patch_makefile() {
+  cd "${SOURCE_DIR}" || return 1
+
+  echo "Patching Makefile for Intel oneAPI dynamic linking..."
+
+  # Remove -static flag that requires unavailable static libraries
+  find . -name "Makefile*" -o -name "Makerules*" | while read -r makefile; do
+    if [[ -f "${makefile}" ]]; then
+      sed -i 's/\s*-static\s*/ /g' "${makefile}"
+      # Also replace hardcoded ifort with ifx for oneAPI compatibility
+      sed -i 's/\bifort\b/ifx/g' "${makefile}"
+      sed -i 's/\bgfortran\b/ifx/g' "${makefile}"
+    fi
+  done
+
+  return 0
+}
+
 # Configure xtb4stda build
 #
 # Exit codes:
@@ -215,7 +238,9 @@ compile_project() {
     set +u
     source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1 || true
     set -u
-    make FC=ifx CC=icx
+    export FC=ifx
+    export CC=icx
+    make
   ) || {
     echo "Error: Compilation failed" >&2
     return 1
@@ -303,7 +328,7 @@ archive_source() {
 # Exit codes:
 #   0 - Always succeeds (file generation non-fatal)
 generate_dependencies_file() {
-  local deps_file="${BUILD_DIR}/DEPENDENCIES.txt"
+  local deps_file="${BUILD_DIR}/dependencies.txt"
 
   cat > "${deps_file}" <<'DEPS'
 === External Dependencies for xtb4stda ===
@@ -370,7 +395,7 @@ print_setup() {
   echo "xtb4stda Installation Complete"
   echo "=========================================="
   echo "Executable: ${BUILD_DIR}/bin/xtb4stda"
-  echo "Dependencies: ${BUILD_DIR}/DEPENDENCIES.txt"
+  echo "Dependencies: ${BUILD_DIR}/dependencies.txt"
   echo ""
   echo "Add to your shell profile:"
   echo "  export XTB4STDAHOME=${BUILD_DIR}"
@@ -380,7 +405,7 @@ print_setup() {
   echo "  export OMP_NUM_THREADS=<ncores>"
   echo "  export MKL_NUM_THREADS=<ncores>"
   echo ""
-  echo "See ${BUILD_DIR}/DEPENDENCIES.txt for HPC submit script setup"
+  echo "See ${BUILD_DIR}/dependencies.txt for HPC submit script setup"
   echo "=========================================="
   echo ""
 }
@@ -390,6 +415,7 @@ main() {
   check_dependencies || return 1
   create_directories || return 1
   clone_repository || return 1
+  patch_makefile || return 1
   configure_build || return 1
   compile_project || return 1
   install_executable || return 1

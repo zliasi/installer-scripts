@@ -353,7 +353,7 @@ archive_source() {
 # Exit codes:
 #   0 - Always succeeds (file generation non-fatal)
 generate_dependencies_file() {
-  local deps_file="${BUILD_DIR}/DEPENDENCIES.txt"
+  local deps_file="${BUILD_DIR}/dependencies.txt"
 
   cat > "${deps_file}" <<'DEPS'
 === External Dependencies for std2 ===
@@ -420,13 +420,13 @@ print_setup() {
   echo "std2 Installation Complete"
   echo "=========================================="
   echo "Executable: ${BUILD_DIR}/bin/std2"
-  echo "Dependencies: ${BUILD_DIR}/DEPENDENCIES.txt"
+  echo "Dependencies: ${BUILD_DIR}/dependencies.txt"
   echo ""
   echo "Add to your shell profile:"
   echo "  export STD2HOME=${BUILD_DIR}"
   echo "  export PATH=\$PATH:\${STD2HOME}/bin"
   echo ""
-  echo "See ${BUILD_DIR}/DEPENDENCIES.txt for HPC submit script setup"
+  echo "See ${BUILD_DIR}/dependencies.txt for HPC submit script setup"
   echo "=========================================="
   echo ""
 }

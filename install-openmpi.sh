@@ -23,6 +23,46 @@ readonly SYMLINK_DIR="$(dirname "${BUILD_DIR}")"
 readonly ARCHIVE="openmpi-${VERSION}.tar.gz"
 readonly SOURCE_DIR="${SRC_DIR}/openmpi-${VERSION}"
 
+# Stores detected UCX and PMIx installation paths
+UCX_PATH=""
+PMIX_PATH=""
+
+# Detects installed UCX library.
+#
+# Sets UCX_PATH if found, otherwise leaves it empty.
+# Checks: ~/software/build/ucx/default, system paths
+detect_ucx() {
+  local ucx_dir="${HOME}/software/build/ucx/default"
+
+  if [[ -d "${ucx_dir}" ]] && [[ -f "${ucx_dir}/lib/libucp.so" ]]; then
+    UCX_PATH="${ucx_dir}"
+    echo "Found UCX at: ${UCX_PATH}"
+  elif command -v pkg-config >/dev/null && pkg-config --exists ucx 2>/dev/null; then
+    UCX_PATH="$(pkg-config --variable=prefix ucx)"
+    echo "Found UCX at: ${UCX_PATH}"
+  else
+    echo "UCX not found, building without UCX support"
+  fi
+}
+
+# Detects installed PMIx library.
+#
+# Sets PMIX_PATH if found, otherwise leaves it empty.
+# Checks: ~/software/build/pmix/default, system paths
+detect_pmix() {
+  local pmix_dir="${HOME}/software/build/pmix/default"
+
+  if [[ -d "${pmix_dir}" ]] && [[ -f "${pmix_dir}/lib/libpmix.so" ]]; then
+    PMIX_PATH="${pmix_dir}"
+    echo "Found PMIx at: ${PMIX_PATH}"
+  elif command -v pkg-config >/dev/null && pkg-config --exists pmix 2>/dev/null; then
+    PMIX_PATH="$(pkg-config --variable=prefix pmix)"
+    echo "Found PMIx at: ${PMIX_PATH}"
+  else
+    echo "PMIx not found, building without PMIx support"
+  fi
+}
+
 # Validates VERSION and PRECISION parameters.
 #
 # Exit codes:
@@ -80,9 +120,14 @@ download_and_extract() {
 #   0 - Build and installation successful
 #   1 - Configure, build, or installation failed
 build_and_install() {
+  local configure_args=(--prefix="${BUILD_DIR}")
+
+  [[ -n "${UCX_PATH}" ]] && configure_args+=(--with-ucx="${UCX_PATH}")
+  [[ -n "${PMIX_PATH}" ]] && configure_args+=(--with-pmix="${PMIX_PATH}")
+
   cd "${SOURCE_DIR}" || return 1
 
-  ./configure --prefix="${BUILD_DIR}" || {
+  ./configure "${configure_args[@]}" || {
     echo "Error: Configure failed" >&2
     return 1
   }
@@ -141,6 +186,8 @@ verify_installation() {
 
 main() {
   validate_parameters || return 1
+  detect_ucx
+  detect_pmix
   create_directories || return 1
   download_and_extract || return 1
   build_and_install || return 1
