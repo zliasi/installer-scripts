@@ -155,7 +155,7 @@ build_project() {
   cd "${SOURCE_DIR}" || return 1
 
   echo "Building GLEW..."
-  make GLEW_DEST="${BUILD_DIR}" -j "$(nproc)" || {
+  make all -j "$(nproc)" || {
     echo "Error: Build failed" >&2
     return 1
   }
@@ -170,7 +170,7 @@ install_executable() {
   cd "${SOURCE_DIR}" || return 1
 
   echo "Installing GLEW to ${BUILD_DIR}..."
-  make GLEW_DEST="${BUILD_DIR}" install || {
+  make install DESTDIR="${BUILD_DIR}" || {
     echo "Error: Installation failed" >&2
     return 1
   }

@@ -297,7 +297,7 @@ build_glew() {
   cd "${GLEW_SOURCE_DIR}" || return 1
 
   echo "Building GLEW..."
-  make GLEW_DEST="${GLEW_BUILD_DIR}" -j "$(nproc)" || {
+  make all -j "$(nproc)" || {
     echo "Error: GLEW build failed" >&2
     return 1
   }
@@ -312,7 +312,7 @@ install_glew() {
   cd "${GLEW_SOURCE_DIR}" || return 1
 
   echo "Installing GLEW to ${GLEW_BUILD_DIR}..."
-  make GLEW_DEST="${GLEW_BUILD_DIR}" install || {
+  make install DESTDIR="${GLEW_BUILD_DIR}" || {
     echo "Error: GLEW installation failed" >&2
     return 1
   }
