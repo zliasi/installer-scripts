@@ -224,6 +224,22 @@ install_executables() {
     }
     chmod +x "${BUILD_DIR}/bin/ambmd"
   fi
+
+  if [[ -f "bin/surf" ]]; then
+    cp bin/surf "${BUILD_DIR}/bin/" || {
+      echo "Error: Failed to copy surf" >&2
+      return 1
+    }
+    chmod +x "${BUILD_DIR}/bin/surf"
+  fi
+
+  if [[ -f "bin/docker" ]]; then
+    cp bin/docker "${BUILD_DIR}/bin/" || {
+      echo "Error: Failed to copy docker" >&2
+      return 1
+    }
+    chmod +x "${BUILD_DIR}/bin/docker"
+  fi
 }
 
 # Create default symlink to installed version
