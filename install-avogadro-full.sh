@@ -578,13 +578,14 @@ configure_lib_build() {
   cd "${LIB_BUILD_SUBDIR}" || return 1
 
   local cmake_prefix_path="${CMAKE_PREFIX_PATH:-}"
-  local glew_prefix=""
-  [[ -n "${GLEW_BUILD_DIR}" ]] && glew_prefix="${GLEW_BUILD_DIR}:"
+
+  # Build prefix path with built dependencies first
+  local prefixes="${HOME}/software/build/glew/2.2.0:${SPGLIB_BUILD_DIR}:${HOME}/software/build"
 
   if [[ -z "${cmake_prefix_path}" ]]; then
-    cmake_prefix_path="${glew_prefix}${SPGLIB_BUILD_DIR}:${HOME}/software/build"
+    cmake_prefix_path="${prefixes}"
   else
-    cmake_prefix_path="${glew_prefix}${SPGLIB_BUILD_DIR}:${HOME}/software/build:${cmake_prefix_path}"
+    cmake_prefix_path="${prefixes}:${cmake_prefix_path}"
   fi
 
   local pkg_config_path="${PKG_CONFIG_PATH:-}"
@@ -662,14 +663,15 @@ configure_app_build() {
   mkdir -p "${APP_BUILD_SUBDIR}" || return 1
   cd "${APP_BUILD_SUBDIR}" || return 1
 
-  local cmake_prefix_path="${BUILD_DIR}"
-  local glew_prefix=""
-  [[ -n "${GLEW_BUILD_DIR}" ]] && glew_prefix="${GLEW_BUILD_DIR}:"
+  local cmake_prefix_path="${CMAKE_PREFIX_PATH:-}"
 
-  if [[ -n "${CMAKE_PREFIX_PATH:-}" ]]; then
-    cmake_prefix_path="${BUILD_DIR}:${glew_prefix}${SPGLIB_BUILD_DIR}:${CMAKE_PREFIX_PATH}"
+  # Build prefix path: avogadrolibs (just built), then built dependencies, then system
+  local prefixes="${BUILD_DIR}:${HOME}/software/build/glew/2.2.0:${SPGLIB_BUILD_DIR}:${HOME}/software/build"
+
+  if [[ -n "${cmake_prefix_path}" ]]; then
+    cmake_prefix_path="${prefixes}:${cmake_prefix_path}"
   else
-    cmake_prefix_path="${BUILD_DIR}:${glew_prefix}${SPGLIB_BUILD_DIR}:${HOME}/software/build"
+    cmake_prefix_path="${prefixes}"
   fi
 
   local pkg_config_path="${PKG_CONFIG_PATH:-}"
