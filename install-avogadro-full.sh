@@ -414,6 +414,8 @@ configure_lib_build() {
     -DCMAKE_INSTALL_PREFIX="${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="${cmake_prefix_path}" \
+    -DCMAKE_MODULE_PATH="$(dirname "$(readlink -f "$0")")" \
+    -DSpglib_DIR="${SPGLIB_BUILD_DIR}" \
     -DENABLE_TESTING=ON || {
     echo "Error: CMake configuration failed" >&2
     return 1
@@ -478,6 +480,8 @@ configure_app_build() {
     -DCMAKE_INSTALL_PREFIX="${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="${cmake_prefix_path}" \
+    -DCMAKE_MODULE_PATH="$(dirname "$(readlink -f "$0")")" \
+    -DSpglib_DIR="${SPGLIB_BUILD_DIR}" \
     -DENABLE_TESTING=ON || {
     echo "Error: CMake configuration failed" >&2
     return 1
