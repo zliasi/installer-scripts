@@ -241,7 +241,8 @@ compile_project() {
 
   export LD_LIBRARY_PATH="${SOURCE_DIR}/libcint/build:${LD_LIBRARY_PATH:-}"
 
-  make PREFIX="${BUILD_DIR}" FC=ifx CC=icx -j "$(nproc)" || {
+  echo "Note: Using serial compilation due to Fortran module dependencies"
+  make PREFIX="${BUILD_DIR}" FC=ifx CC=icx || {
     echo "Error: Compilation failed" >&2
     return 1
   }
