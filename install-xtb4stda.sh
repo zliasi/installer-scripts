@@ -209,13 +209,14 @@ compile_project() {
   cd "${SOURCE_DIR}" || return 1
 
   echo "Building xtb4stda with Make and Intel Fortran..."
-
-  set +u
-  source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1 || true
-  set -u
-
   echo "Note: Using serial compilation due to Fortran module dependencies"
-  make FC=ifx CC=icx || {
+
+  (
+    set +u
+    source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1 || true
+    set -u
+    make FC=ifx CC=icx
+  ) || {
     echo "Error: Compilation failed" >&2
     return 1
   }
