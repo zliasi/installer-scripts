@@ -21,8 +21,7 @@ readonly SRC_DIR="${HOME}/software/src/external"
 
 VERSION="${1:-7.3}"
 SYMLINK_NAME="${2:-default}"
-GIT_REF=""
-TEMP_SOURCE_DIR=""
+TEMP_SOURCE_DIR="${SRC_DIR}/molden${VERSION}"
 IS_DEV=false
 PATH_VERSION=""
 
@@ -128,12 +127,12 @@ download_source() {
 
   if [[ "${IS_DEV}" == "true" ]]; then
     PATH_VERSION="$(date +%Y.%m)-dev"
-    SOURCE_DIR="${SRC_DIR}/molden-${PATH_VERSION}"
+    SOURCE_DIR="${SRC_DIR}/molden${PATH_VERSION}"
     if [[ "${temp_src}" != "${SOURCE_DIR}" ]] && [[ -d "${temp_src}" ]]; then
       mv "${temp_src}" "${SOURCE_DIR}"
     fi
   else
-    SOURCE_DIR="${SRC_DIR}/molden-${PATH_VERSION}"
+    SOURCE_DIR="${SRC_DIR}/molden${PATH_VERSION}"
     if [[ "${temp_src}" != "${SOURCE_DIR}" ]] && [[ -d "${temp_src}" ]]; then
       mv "${temp_src}" "${SOURCE_DIR}"
     fi
