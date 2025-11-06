@@ -203,7 +203,7 @@ configure_build() {
   echo "Configuring std2 with Make and Intel Fortran..."
 
   echo "Checking/downloading and building libcint..."
-  if [[ ! -d "${SOURCE_DIR}/libcint/build" ]]; then
+  if [[ ! -d "${BUILD_DIR}/libcint/build" ]]; then
     if [[ ! -d "${SOURCE_DIR}/libcint" ]]; then
       echo "Downloading libcint v6.1.2 from official release..."
       mkdir -p "${SOURCE_DIR}/libcint"
@@ -223,23 +223,20 @@ configure_build() {
     fi
 
     echo "Building libcint with cmake..."
-    mkdir -p "${SOURCE_DIR}/libcint/build"
-    cd "${SOURCE_DIR}/libcint/build" || return 1
+    mkdir -p "${BUILD_DIR}/libcint/build"
 
     set +u
-    cmake .. || {
+    cmake -S "${SOURCE_DIR}/libcint" -B "${BUILD_DIR}/libcint/build" || {
       echo "Error: libcint cmake configuration failed" >&2
       set -u
       return 1
     }
-    cmake --build . || {
+    cmake --build "${BUILD_DIR}/libcint/build" || {
       echo "Error: libcint build failed" >&2
       set -u
       return 1
     }
     set -u
-
-    cd "${SOURCE_DIR}" || return 1
   fi
 }
 
@@ -253,7 +250,7 @@ compile_project() {
 
   echo "Building std2 with Make and Intel Fortran..."
 
-  export LD_LIBRARY_PATH="${SOURCE_DIR}/libcint/build:${LD_LIBRARY_PATH:-}"
+  export LD_LIBRARY_PATH="${BUILD_DIR}/libcint/build:${LD_LIBRARY_PATH:-}"
 
   echo "Note: Using serial compilation due to Fortran module dependencies"
   make PREFIX="${BUILD_DIR}" FC=ifx CC=icx || {
@@ -362,7 +359,7 @@ Required external software/modules (must be sourced in submit scripts):
 
 2. libcint (integral computation library)
    Built during installation as dependency of std2
-   Location: ~/software/src/external/std2-<VERSION>/libcint/build
+   Location: ~/software/build/std2/<VERSION>/libcint/build
    Purpose: Provides one- and two-electron integral computation
    Required for: Runtime execution of std2
 
@@ -375,8 +372,7 @@ Example bash submit script for std2:
   source /software/kemi/intel/oneapi/setvars.sh --force
 
   export STD2HOME=~/software/build/std2/default
-  export STD2SRC=~/software/src/external/std2-2.0.1
-  export LD_LIBRARY_PATH=${STD2SRC}/libcint/build:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=${STD2HOME}/libcint/build:$LD_LIBRARY_PATH
   export PATH=$PATH:${STD2HOME}/bin
 
   std2 input.in
@@ -389,8 +385,7 @@ Example SLURM job submission with Intel oneAPI and libcint:
   source /software/kemi/intel/oneapi/setvars.sh --force
 
   export STD2HOME=~/software/build/std2/default
-  export STD2SRC=~/software/src/external/std2-2.0.1
-  export LD_LIBRARY_PATH=${STD2SRC}/libcint/build:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=${STD2HOME}/libcint/build:$LD_LIBRARY_PATH
 
   ${STD2HOME}/bin/std2 input.in
 
