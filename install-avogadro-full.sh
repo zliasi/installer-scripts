@@ -274,19 +274,62 @@ setup_glew() {
   echo "Setting up GLEW..."
 
   # Try to download and build GLEW first
-  download_glew && build_glew && install_glew && return 0
+  download_glew && build_glew && install_glew && {
+    echo "GLEW build successful"
+    return 0
+  }
 
   # If build failed, check for system GLEW
   echo "Warning: GLEW build failed, checking for system GLEW..."
+
+  if ! command -v pkg-config >/dev/null 2>&1; then
+    echo "Warning: pkg-config not found, cannot check for system GLEW"
+    GLEW_INCLUDE_DIRS=""
+    GLEW_LIBRARIES=""
+    return 0
+  fi
+
   if pkg-config glew >/dev/null 2>&1; then
+    echo "pkg-config found GLEW"
     local glew_includedir=$(pkg-config --variable=includedir glew)
     local glew_libdir=$(pkg-config --variable=libdir glew)
-    if [[ -d "${glew_includedir}" ]] && [[ -f "${glew_libdir}/libGLEW.so" ]]; then
-      echo "Found system GLEW at ${glew_libdir}"
-      GLEW_INCLUDE_DIRS="${glew_includedir}"
-      GLEW_LIBRARIES="${glew_libdir}/libGLEW.so"
+    echo "  GLEW includedir from pkg-config: ${glew_includedir}"
+    echo "  GLEW libdir from pkg-config: ${glew_libdir}"
+
+    if [[ -z "${glew_includedir}" ]] || [[ -z "${glew_libdir}" ]]; then
+      echo "Warning: pkg-config returned empty paths for GLEW"
+      GLEW_INCLUDE_DIRS=""
+      GLEW_LIBRARIES=""
       return 0
     fi
+
+    if [[ -d "${glew_includedir}" ]]; then
+      echo "  Include directory exists: ${glew_includedir}"
+    else
+      echo "  WARNING: Include directory not found: ${glew_includedir}"
+    fi
+
+    if [[ -f "${glew_libdir}/libGLEW.so" ]]; then
+      echo "Found system GLEW at ${glew_libdir}/libGLEW.so"
+      GLEW_INCLUDE_DIRS="${glew_includedir}"
+      GLEW_LIBRARIES="${glew_libdir}/libGLEW.so"
+      echo "Set GLEW_INCLUDE_DIRS=${GLEW_INCLUDE_DIRS}"
+      echo "Set GLEW_LIBRARIES=${GLEW_LIBRARIES}"
+      return 0
+    else
+      echo "  WARNING: libGLEW.so not found at ${glew_libdir}/libGLEW.so"
+      # Check for .a (static library)
+      if [[ -f "${glew_libdir}/libGLEW.a" ]]; then
+        echo "  Found static library: ${glew_libdir}/libGLEW.a"
+        GLEW_INCLUDE_DIRS="${glew_includedir}"
+        GLEW_LIBRARIES="${glew_libdir}/libGLEW.a"
+        echo "Set GLEW_INCLUDE_DIRS=${GLEW_INCLUDE_DIRS}"
+        echo "Set GLEW_LIBRARIES=${GLEW_LIBRARIES}"
+        return 0
+      fi
+    fi
+  else
+    echo "pkg-config: GLEW not found"
   fi
 
   echo "Warning: GLEW not available, continuing without GLEW support..."
