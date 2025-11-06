@@ -338,7 +338,7 @@ setup_glew() {
   return 0
 }
 
-# Clone GLEW repository (use main branch as version tags vary)
+# Clone GLEW repository (try release 2.2.0)
 #
 # Exit codes:
 #   0 - Success or already cloned
@@ -347,11 +347,26 @@ download_glew() {
   local temp_src="${TEMP_GLEW_SOURCE_DIR}"
 
   if [[ ! -d "${temp_src}" ]]; then
-    echo "Cloning GLEW from GitHub (main branch)..."
-    git clone --depth 1 \
-      https://github.com/nigels-com/glew.git "${temp_src}" || {
-      echo "Error: Clone failed" >&2
-      return 1
+    echo "Downloading GLEW release 2.2.0..."
+    local download_url="https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.tgz"
+    local archive="${SRC_DIR}/glew-2.2.0.tgz"
+
+    wget -P "${SRC_DIR}" "${download_url}" -O "${archive}" || {
+      echo "Error: Download failed, trying git clone..." >&2
+      echo "Cloning GLEW from GitHub (main branch)..."
+      git clone --depth 1 \
+        https://github.com/nigels-com/glew.git "${temp_src}" || {
+        echo "Error: Clone failed" >&2
+        return 1
+      }
+    } && {
+      tar -xzf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+      if [[ -d "${SRC_DIR}/glew-2.2.0" ]]; then
+        mv "${SRC_DIR}/glew-2.2.0" "${temp_src}"
+      fi
     }
   fi
 
@@ -779,6 +794,7 @@ main() {
   compile_spglib || return 1
   install_spglib || return 1
   setup_glew || return 1
+  echo "After setup_glew: GLEW_INCLUDE_DIRS='${GLEW_INCLUDE_DIRS}' GLEW_LIBRARIES='${GLEW_LIBRARIES}'"
   clone_lib_repository || return 1
   clone_app_repository || return 1
   configure_lib_build || return 1
