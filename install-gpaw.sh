@@ -22,6 +22,7 @@ readonly VERSION="${1:-25.7.0}"
 readonly SYMLINK_NAME="${2:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/gpaw/${VERSION}"
+readonly SYMLINK_DIR="$(dirname "${BUILD_DIR}")"
 readonly VENV_DIR="${BUILD_DIR}/venv"
 readonly DATA_DIR="${BUILD_DIR}/share"
 readonly ARCHIVE="gpaw-${VERSION}.tar.gz"
@@ -151,10 +152,10 @@ install_paw_datasets() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/gpaw/${SYMLINK_NAME}"
+  local symlink_path="${SYMLINK_DIR}/${SYMLINK_NAME}"
 
-  rm -f "${default_link}"
-  ln -sfn "${VERSION}" "${default_link}" || {
+  rm -f "${symlink_path}"
+  ln -sfn "${VERSION}" "${symlink_path}" || {
     echo "Error: Failed to create symlink" >&2
     return 1
   }

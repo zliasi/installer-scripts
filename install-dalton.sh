@@ -287,10 +287,12 @@ build_project() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/dalton/${SYMLINK_NAME}"
+  local symlink_dir
+  symlink_dir="$(dirname "${BUILD_DIR}")"
+  local symlink_path="${symlink_dir}/${SYMLINK_NAME}"
 
-  rm -f "${default_link}"
-  ln -sfn "${PATH_VERSION}-${PRECISION}" "${default_link}" || {
+  rm -f "${symlink_path}"
+  ln -sfn "${PATH_VERSION}-${PRECISION}" "${symlink_path}" || {
     echo "Error: Failed to create symlink" >&2
     return 1
   }

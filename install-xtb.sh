@@ -17,6 +17,7 @@ readonly VERSION="${1:-6.7.1}"
 readonly SYMLINK_NAME="${2:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/xtb/${VERSION}"
+readonly SYMLINK_DIR="$(dirname "${BUILD_DIR}")"
 readonly ARCHIVE="xtb-${VERSION}-linux-x86_64.tar.xz"
 readonly EXTRACT_DIR="xtb-dist"
 readonly SOURCE_DIR="${SRC_DIR}/xtb-${VERSION}"
@@ -88,10 +89,10 @@ copy_binaries() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/xtb/${SYMLINK_NAME}"
+  local symlink_path="${SYMLINK_DIR}/${SYMLINK_NAME}"
 
-  rm -f "${default_link}"
-  ln -sfn "${VERSION}" "${default_link}" || {
+  rm -f "${symlink_path}"
+  ln -sfn "${VERSION}" "${symlink_path}" || {
     echo "Error: Failed to create symlink" >&2
     return 1
   }

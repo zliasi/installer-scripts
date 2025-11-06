@@ -19,6 +19,7 @@ readonly PRECISION="${2:-lp64}"
 readonly SYMLINK_NAME="${3:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/openmpi/${VERSION}-${PRECISION}"
+readonly SYMLINK_DIR="$(dirname "${BUILD_DIR}")"
 readonly ARCHIVE="openmpi-${VERSION}.tar.gz"
 readonly SOURCE_DIR="${SRC_DIR}/openmpi-${VERSION}"
 
@@ -103,10 +104,10 @@ build_and_install() {
 #   0 - Symlink created successfully
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/openmpi/${SYMLINK_NAME}"
+  local symlink_path="${SYMLINK_DIR}/${SYMLINK_NAME}"
 
-  rm -f "${default_link}"
-  ln -sfn "${VERSION}-${PRECISION}" "${default_link}" || {
+  rm -f "${symlink_path}"
+  ln -sfn "${VERSION}-${PRECISION}" "${symlink_path}" || {
     echo "Error: Failed to create symlink" >&2
     return 1
   }

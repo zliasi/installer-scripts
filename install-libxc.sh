@@ -17,6 +17,7 @@ readonly VERSION="${1:-7.0.0}"
 readonly SYMLINK_NAME="${2:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/libxc/${VERSION}"
+readonly SYMLINK_DIR="$(dirname "${BUILD_DIR}")"
 readonly ARCHIVE="libxc-${VERSION}.tar.bz2"
 readonly SOURCE_DIR="${SRC_DIR}/libxc-${VERSION}"
 
@@ -107,10 +108,10 @@ build_and_install() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/libxc/${SYMLINK_NAME}"
+  local symlink_path="${SYMLINK_DIR}/${SYMLINK_NAME}"
 
-  rm -f "${default_link}"
-  ln -sfn "${VERSION}" "${default_link}" || {
+  rm -f "${symlink_path}"
+  ln -sfn "${VERSION}" "${symlink_path}" || {
     echo "Error: Failed to create symlink" >&2
     return 1
   }
