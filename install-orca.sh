@@ -1,50 +1,60 @@
 #!/usr/bin/env bash
 # Install Orca from precompiled binaries.
 #
-# Usage: install-orca.sh [VERSION] [SYMLINK_NAME]
+# Usage: install-orca.sh <tar-file> [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION      - Orca version (default: 6.1.0)
+#   tar-file     - Path to Orca tar archive (required)
 #   SYMLINK_NAME - Name for symlink (default: default)
 #
-# Prerequisites:
-#   Source archive must exist at ~/software/src/external/orca-VERSION.tar.xz
-#
 # Paths:
-#   Source: ~/software/src/external
-#   Build:  ~/software/build/orca/VERSION
+#   Build:  ~/software/build/orca/VERSION (VERSION parsed from filename)
 
 set -euo pipefail
 
-readonly VERSION="${1:-6.1.0}"
-readonly SYMLINK_NAME="${2:-default}"
-readonly SRC_DIR="${HOME}/software/src/external"
-readonly BUILD_DIR="${HOME}/software/build/orca/${VERSION}"
-readonly SYMLINK_DIR="$(dirname "${BUILD_DIR}")"
-readonly ARCHIVE="orca-${VERSION}.tar.xz"
-readonly SOURCE_DIR="${SRC_DIR}/orca-${VERSION}"
+# Parse version from Orca tar filename
+# Expected format: orca_X_Y_Z_*.tar.{xz,gz}
+# Returns: X.Y.Z
+parse_version_from_filename() {
+  local filename="$1"
+  local basename
+  basename="$(basename "${filename}")"
 
-# Validate required parameters are non-empty
-#
-# Exit codes:
-#   0 - Valid parameters
-#   1 - Invalid parameters
-validate_parameters() {
-  [[ -n "${VERSION}" ]] || {
-    echo "Error: VERSION cannot be empty" >&2
+  # Extract version pattern (e.g., orca_6_1_0_... -> 6_1_0)
+  if [[ "${basename}" =~ ^orca_([0-9]+)_([0-9]+)_([0-9]+)_ ]]; then
+    echo "${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+  else
+    echo "Error: Cannot parse version from filename: ${filename}" >&2
+    echo "Expected format: orca_X_Y_Z_*.tar.{xz,gz}" >&2
     return 1
-  }
+  fi
 }
 
-# Verify source archive exists at expected location
+readonly TAR_FILE="${1}"
+readonly SYMLINK_NAME="${2:-default}"
+readonly VERSION="$(parse_version_from_filename "${TAR_FILE}")"
+readonly BUILD_DIR="${HOME}/software/build/orca/${VERSION}"
+readonly SYMLINK_DIR="$(dirname "${BUILD_DIR}")"
+
+# Validate tar file argument and file type
 #
 # Exit codes:
-#   0 - Source archive found
-#   1 - Source archive not found
-validate_source_exists() {
-  [[ -f "${SRC_DIR}/${ARCHIVE}" ]] || {
-    echo "Error: Source archive not found at ${SRC_DIR}/${ARCHIVE}" >&2
-    echo "Please download Orca ${VERSION} from the forum and place it there" >&2
+#   0 - Valid tar file
+#   1 - Invalid or missing tar file
+validate_tar_file() {
+  [[ -n "${TAR_FILE}" ]] || {
+    echo "Error: tar-file argument is required" >&2
+    echo "Usage: install-orca.sh <tar-file> [SYMLINK_NAME]" >&2
+    return 1
+  }
+
+  [[ -f "${TAR_FILE}" ]] || {
+    echo "Error: Tar file not found: ${TAR_FILE}" >&2
+    return 1
+  }
+
+  [[ "${TAR_FILE}" =~ \.(tar\.xz|tar\.gz)$ ]] || {
+    echo "Error: File must be .tar.xz or .tar.gz: ${TAR_FILE}" >&2
     return 1
   }
 }
@@ -61,33 +71,15 @@ create_directories() {
   }
 }
 
-# Extract Orca archive if not already extracted
-#
-# Exit codes:
-#   0 - Success or already extracted
-#   1 - Extraction failed
-extract_archive() {
-  if [[ -d "${SOURCE_DIR}" ]]; then
-    echo "Source already extracted, skipping"
-    return 0
-  fi
-
-  echo "Extracting Orca ${VERSION}..."
-  tar -xf "${SRC_DIR}/${ARCHIVE}" -C "${SRC_DIR}" || {
-    echo "Error: Extraction failed" >&2
-    return 1
-  }
-}
-
-# Copy Orca binaries to build directory
+# Extract Orca archive directly to build directory
 #
 # Exit codes:
 #   0 - Success
-#   1 - Copy failed
-copy_binaries() {
-  echo "Copying Orca binaries to ${BUILD_DIR}..."
-  cp -r "${SOURCE_DIR}"/* "${BUILD_DIR}/" || {
-    echo "Error: Copy failed" >&2
+#   1 - Extraction failed
+extract_archive() {
+  echo "Extracting Orca ${VERSION} to ${BUILD_DIR}..."
+  tar -xf "${TAR_FILE}" -C "${BUILD_DIR}" --strip-components=1 || {
+    echo "Error: Extraction failed" >&2
     return 1
   }
 }
@@ -107,19 +99,6 @@ setup_symlink() {
   }
 }
 
-# Remove source directory after installation
-#
-# Exit codes:
-#   0 - Always succeeds (cleanup warnings non-fatal)
-cleanup_source() {
-  if [[ -d "${SOURCE_DIR}" ]]; then
-    echo "Removing source directory..."
-    rm -rf "${SOURCE_DIR}" || {
-      echo "Warning: Failed to remove ${SOURCE_DIR}" >&2
-    }
-  fi
-}
-
 # Verify Orca executable was installed successfully
 #
 # Exit codes:
@@ -134,12 +113,9 @@ verify_installation() {
 }
 
 main() {
-  validate_parameters || return 1
-  validate_source_exists || return 1
+  validate_tar_file || return 1
   create_directories || return 1
   extract_archive || return 1
-  copy_binaries || return 1
-  cleanup_source || return 1
   setup_symlink || return 1
   verify_installation
 }
