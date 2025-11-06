@@ -26,6 +26,7 @@ source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1 || true
 set -u
 
 readonly SRC_DIR="${HOME}/software/src/external"
+readonly BUILD_BASE_DIR="${HOME}/software/build"
 
 VERSION="${1:-2.0.1}"
 SYMLINK_NAME="${2:-default}"
@@ -33,6 +34,10 @@ GIT_REF="v${VERSION#v}"
 TEMP_SOURCE_DIR="${SRC_DIR}/std2-${VERSION}"
 IS_DEV=false
 PATH_VERSION=""
+
+# libcint version and paths
+readonly LIBCINT_VERSION="6.1.2"
+LIBCINT_BUILD_DIR="${BUILD_BASE_DIR}/libcint/${LIBCINT_VERSION}"
 
 if [[ "${VERSION}" =~ ^[0-9] ]]; then
   IS_DEV=false
@@ -203,13 +208,13 @@ configure_build() {
   echo "Configuring std2 with Make and Intel Fortran..."
 
   echo "Checking/downloading and building libcint..."
-  if [[ ! -d "${BUILD_DIR}/libcint/build" ]]; then
+  if [[ ! -d "${LIBCINT_BUILD_DIR}" ]]; then
     if [[ ! -d "${SOURCE_DIR}/libcint" ]]; then
-      echo "Downloading libcint v6.1.2 from official release..."
+      echo "Downloading libcint v${LIBCINT_VERSION} from official release..."
       mkdir -p "${SOURCE_DIR}/libcint"
       cd "${SOURCE_DIR}/libcint" || return 1
 
-      wget https://github.com/pierre-24/libcint-meson/releases/download/v0.3.0/libcint_v6.1.2.tar.gz -O libcint.tar.gz || {
+      wget https://github.com/pierre-24/libcint-meson/releases/download/v0.3.0/libcint_v${LIBCINT_VERSION}.tar.gz -O libcint.tar.gz || {
         echo "Error: Failed to download libcint" >&2
         return 1
       }
@@ -222,16 +227,16 @@ configure_build() {
       cd "${SOURCE_DIR}" || return 1
     fi
 
-    echo "Building libcint with cmake..."
-    mkdir -p "${BUILD_DIR}/libcint/build"
+    echo "Building libcint with cmake to ${LIBCINT_BUILD_DIR}..."
+    mkdir -p "${LIBCINT_BUILD_DIR}"
 
     set +u
-    cmake -S "${SOURCE_DIR}/libcint" -B "${BUILD_DIR}/libcint/build" || {
+    cmake -S "${SOURCE_DIR}/libcint" -B "${LIBCINT_BUILD_DIR}" || {
       echo "Error: libcint cmake configuration failed" >&2
       set -u
       return 1
     }
-    cmake --build "${BUILD_DIR}/libcint/build" || {
+    cmake --build "${LIBCINT_BUILD_DIR}" || {
       echo "Error: libcint build failed" >&2
       set -u
       return 1
@@ -250,7 +255,7 @@ compile_project() {
 
   echo "Building std2 with Make and Intel Fortran..."
 
-  export LD_LIBRARY_PATH="${BUILD_DIR}/libcint/build:${LD_LIBRARY_PATH:-}"
+  export LD_LIBRARY_PATH="${LIBCINT_BUILD_DIR}:${LD_LIBRARY_PATH:-}"
 
   echo "Note: Using serial compilation due to Fortran module dependencies"
   make PREFIX="${BUILD_DIR}" FC=ifx CC=icx || {
@@ -358,8 +363,8 @@ Required external software/modules (must be sourced in submit scripts):
    Required for: Building and running std2
 
 2. libcint (integral computation library)
-   Built during installation as dependency of std2
-   Location: ~/software/build/std2/<VERSION>/libcint/build
+   Built separately and shared across all std2 versions
+   Location: ~/software/build/libcint/6.1.2
    Purpose: Provides one- and two-electron integral computation
    Required for: Runtime execution of std2
 
@@ -372,7 +377,7 @@ Example bash submit script for std2:
   source /software/kemi/intel/oneapi/setvars.sh --force
 
   export STD2HOME=~/software/build/std2/default
-  export LD_LIBRARY_PATH=${STD2HOME}/libcint/build:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=~/software/build/libcint/6.1.2:$LD_LIBRARY_PATH
   export PATH=$PATH:${STD2HOME}/bin
 
   std2 input.in
@@ -385,7 +390,7 @@ Example SLURM job submission with Intel oneAPI and libcint:
   source /software/kemi/intel/oneapi/setvars.sh --force
 
   export STD2HOME=~/software/build/std2/default
-  export LD_LIBRARY_PATH=${STD2HOME}/libcint/build:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=~/software/build/libcint/6.1.2:$LD_LIBRARY_PATH
 
   ${STD2HOME}/bin/std2 input.in
 
