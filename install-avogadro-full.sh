@@ -141,8 +141,8 @@ check_dependencies() {
     echo "Error: make not found in PATH" >&2
     return 1
   }
-  command -v git >/dev/null || {
-    echo "Error: git not found in PATH" >&2
+  command -v wget >/dev/null || {
+    echo "Error: wget not found in PATH" >&2
     return 1
   }
   command -v gcc >/dev/null || {
@@ -163,14 +163,15 @@ create_directories() {
   }
 }
 
-# Clone Avogadro libraries repository
+# Download Avogadro libraries repository
 #
 # Exit codes:
-#   0 - Success or already cloned
-#   1 - Clone failed
+#   0 - Success or already downloaded
+#   1 - Download failed
 clone_lib_repository() {
   local temp_src="${TEMP_LIB_SOURCE_DIR}"
   local archive="${SRC_DIR}/avogadro-${VERSION}.tar.gz"
+  local download_url="https://github.com/openchemistry/avogadro/archive/refs/tags/${GIT_REF}.tar.gz"
 
   if [[ ! -d "${temp_src}" ]]; then
     if [[ -f "${archive}" ]]; then
@@ -179,13 +180,24 @@ clone_lib_repository() {
         echo "Error: Extraction failed" >&2
         return 1
       }
+      # GitHub archives extract with repo-TAG format
+      if [[ -d "${SRC_DIR}/avogadro-${GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/avogadro-${GIT_REF}" "${temp_src}"
+      fi
     else
-      echo "Cloning Avogadro libraries ${GIT_REF}..."
-      git clone --depth 1 --branch "${GIT_REF}" \
-        https://github.com/openchemistry/avogadro.git "${temp_src}" || {
-        echo "Error: Clone failed" >&2
+      echo "Downloading Avogadro libraries ${GIT_REF}..."
+      wget -P "${SRC_DIR}" "${download_url}" -O "${archive}" || {
+        echo "Error: Download failed" >&2
         return 1
       }
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+      # GitHub archives extract with repo-TAG format
+      if [[ -d "${SRC_DIR}/avogadro-${GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/avogadro-${GIT_REF}" "${temp_src}"
+      fi
     fi
   fi
 
@@ -213,14 +225,15 @@ clone_lib_repository() {
   }
 }
 
-# Clone Avogadro application repository
+# Download Avogadro application repository
 #
 # Exit codes:
-#   0 - Success or already cloned
-#   1 - Clone failed
+#   0 - Success or already downloaded
+#   1 - Download failed
 clone_app_repository() {
   local temp_src="${TEMP_APP_SOURCE_DIR}"
   local archive="${SRC_DIR}/avogadroapp-${VERSION}.tar.gz"
+  local download_url="https://github.com/openchemistry/avogadroapp/archive/refs/tags/${GIT_REF}.tar.gz"
 
   if [[ ! -d "${temp_src}" ]]; then
     if [[ -f "${archive}" ]]; then
@@ -229,13 +242,24 @@ clone_app_repository() {
         echo "Error: Extraction failed" >&2
         return 1
       }
+      # GitHub archives extract with repo-TAG format
+      if [[ -d "${SRC_DIR}/avogadroapp-${GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/avogadroapp-${GIT_REF}" "${temp_src}"
+      fi
     else
-      echo "Cloning Avogadro application ${GIT_REF}..."
-      git clone --depth 1 --branch "${GIT_REF}" \
-        https://github.com/openchemistry/avogadroapp.git "${temp_src}" || {
-        echo "Error: Clone failed" >&2
+      echo "Downloading Avogadro application ${GIT_REF}..."
+      wget -P "${SRC_DIR}" "${download_url}" -O "${archive}" || {
+        echo "Error: Download failed" >&2
         return 1
       }
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+      # GitHub archives extract with repo-TAG format
+      if [[ -d "${SRC_DIR}/avogadroapp-${GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/avogadroapp-${GIT_REF}" "${temp_src}"
+      fi
     fi
   fi
 
