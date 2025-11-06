@@ -9,9 +9,9 @@
 #
 # Notes:
 #   std2 uses Make build system with Intel Fortran (ifx)
-#   Builds libcint with cmake during std2 configuration
+#   Downloads and builds libcint v6.1.2 during configuration
 #   Requires Intel oneAPI 2024+ to be installed at /software/kemi/intel/oneapi
-#   Requires cmake for building libcint dependency
+#   Requires cmake and wget for building libcint dependency
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -119,6 +119,10 @@ check_dependencies() {
     echo "Error: cmake not found in PATH" >&2
     return 1
   }
+  command -v wget >/dev/null || {
+    echo "Error: wget not found in PATH" >&2
+    return 1
+  }
   command -v git >/dev/null || {
     echo "Error: git not found in PATH" >&2
     return 1
@@ -201,11 +205,21 @@ configure_build() {
   echo "Checking/downloading and building libcint..."
   if [[ ! -d "${SOURCE_DIR}/libcint/build" ]]; then
     if [[ ! -d "${SOURCE_DIR}/libcint" ]]; then
-      echo "Cloning libcint from GitHub..."
-      git clone https://github.com/sunqm/libcint.git "${SOURCE_DIR}/libcint" || {
-        echo "Error: Failed to clone libcint" >&2
+      echo "Downloading libcint v6.1.2 from official release..."
+      mkdir -p "${SOURCE_DIR}/libcint"
+      cd "${SOURCE_DIR}/libcint" || return 1
+
+      wget https://github.com/pierre-24/libcint-meson/releases/download/v0.3.0/libcint_v6.1.2.tar.gz -O libcint.tar.gz || {
+        echo "Error: Failed to download libcint" >&2
         return 1
       }
+
+      tar -xzf libcint.tar.gz || {
+        echo "Error: Failed to extract libcint" >&2
+        return 1
+      }
+
+      cd "${SOURCE_DIR}" || return 1
     fi
 
     echo "Building libcint with cmake..."
