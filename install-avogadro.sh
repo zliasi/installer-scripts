@@ -96,7 +96,7 @@ parse_arguments() {
   done
 
   # Set up derived variables
-  GIT_REF="v${VERSION#v}"
+  GIT_REF="${VERSION#v}"
   TEMP_SOURCE_DIR="${SRC_DIR}/avogadro-${VERSION}"
 
   if [[ "${VERSION}" =~ ^[0-9] ]]; then
