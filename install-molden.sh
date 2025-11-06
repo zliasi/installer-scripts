@@ -156,7 +156,7 @@ build_source() {
   cd "${SOURCE_DIR}" || return 1
 
   echo "Building MOLDEN ${VERSION} with gfortran..."
-  make FC=gfortran -j "$(nproc)" || {
+  make FC=gfortran FFLAGS="-fallow-argument-mismatch -w -O2" -j "$(nproc)" || {
     echo "Error: Build failed" >&2
     return 1
   }
