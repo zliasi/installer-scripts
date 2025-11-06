@@ -193,32 +193,32 @@ install_executables() {
   echo "Installing MOLDEN to ${BUILD_DIR}..."
   mkdir -p "${BUILD_DIR}/bin"
 
-  if [[ -f "gmolden" ]]; then
-    cp gmolden "${BUILD_DIR}/bin/" || {
+  if [[ -f "bin/gmolden" ]]; then
+    cp bin/gmolden "${BUILD_DIR}/bin/" || {
       echo "Error: Failed to copy gmolden" >&2
       return 1
     }
     chmod +x "${BUILD_DIR}/bin/gmolden"
   fi
 
-  if [[ -f "molden" ]]; then
-    cp molden "${BUILD_DIR}/bin/" || {
+  if [[ -f "bin/molden" ]]; then
+    cp bin/molden "${BUILD_DIR}/bin/" || {
       echo "Error: Failed to copy molden" >&2
       return 1
     }
     chmod +x "${BUILD_DIR}/bin/molden"
   fi
 
-  if [[ -f "ambfor" ]]; then
-    cp ambfor "${BUILD_DIR}/bin/" || {
+  if [[ -f "bin/ambfor" ]]; then
+    cp bin/ambfor "${BUILD_DIR}/bin/" || {
       echo "Error: Failed to copy ambfor" >&2
       return 1
     }
     chmod +x "${BUILD_DIR}/bin/ambfor"
   fi
 
-  if [[ -f "ambmd" ]]; then
-    cp ambmd "${BUILD_DIR}/bin/" || {
+  if [[ -f "bin/ambmd" ]]; then
+    cp bin/ambmd "${BUILD_DIR}/bin/" || {
       echo "Error: Failed to copy ambmd" >&2
       return 1
     }
