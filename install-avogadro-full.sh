@@ -379,15 +379,8 @@ download_glew() {
     local download_url="https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.tgz"
     local archive="${SRC_DIR}/glew-2.2.0.tgz"
 
-    wget -P "${SRC_DIR}" "${download_url}" -O "${archive}" || {
-      echo "Error: Download failed, trying git clone..." >&2
-      echo "Cloning GLEW from GitHub (main branch)..."
-      git clone --depth 1 \
-        https://github.com/nigels-com/glew.git "${temp_src}" || {
-        echo "Error: Clone failed" >&2
-        return 1
-      }
-    } && {
+    if wget -P "${SRC_DIR}" "${download_url}" -O "${archive}"; then
+      echo "GLEW release downloaded successfully, extracting..."
       tar -xzf "${archive}" -C "${SRC_DIR}" || {
         echo "Error: Extraction failed" >&2
         return 1
@@ -395,7 +388,15 @@ download_glew() {
       if [[ -d "${SRC_DIR}/glew-2.2.0" ]]; then
         mv "${SRC_DIR}/glew-2.2.0" "${temp_src}"
       fi
-    }
+    else
+      echo "Error: Download failed, trying git clone..." >&2
+      echo "Cloning GLEW from GitHub (main branch)..."
+      git clone --depth 1 \
+        https://github.com/nigels-com/glew.git "${temp_src}" || {
+        echo "Error: Clone failed" >&2
+        return 1
+      }
+    fi
   fi
 
   GLEW_SOURCE_DIR="${temp_src}"
