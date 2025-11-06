@@ -62,7 +62,7 @@ download_and_extract() {
       echo "Using existing archive: ${ARCHIVE}"
     else
       echo "Downloading OpenMPI ${VERSION}..."
-      wget -P "${SRC_DIR}" "https://download.open-mpi.org/release/open-mpi/${VERSION}/${ARCHIVE}" || {
+      wget -P "${SRC_DIR}" "https://download.open-mpi.org/release/open-mpi/v${VERSION%.*}/${ARCHIVE}" || {
         echo "Error: Download failed" >&2
         return 1
       }
