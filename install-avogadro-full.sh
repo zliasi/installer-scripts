@@ -17,7 +17,10 @@ readonly SRC_DIR="${HOME}/software/src/external"
 
 VERSION="1.102.1"
 SYMLINK_NAME="default"
+SPGLIB_VERSION="2.3.1"
 GIT_REF=""
+SPGLIB_GIT_REF=""
+TEMP_SPGLIB_SOURCE_DIR=""
 TEMP_LIB_SOURCE_DIR=""
 TEMP_APP_SOURCE_DIR=""
 IS_DEV=false
@@ -31,6 +34,9 @@ else
   PATH_VERSION=""
 fi
 
+SPGLIB_SOURCE_DIR=""
+SPGLIB_BUILD_DIR=""
+SPGLIB_BUILD_SUBDIR=""
 LIB_SOURCE_DIR=""
 APP_SOURCE_DIR=""
 BUILD_DIR=""
@@ -100,6 +106,8 @@ parse_arguments() {
 
   # Set up derived variables
   GIT_REF="${VERSION#v}"
+  SPGLIB_GIT_REF="v${SPGLIB_VERSION#v}"
+  TEMP_SPGLIB_SOURCE_DIR="${SRC_DIR}/spglib-${SPGLIB_VERSION}"
   TEMP_LIB_SOURCE_DIR="${SRC_DIR}/avogadrolibs-${VERSION}"
   TEMP_APP_SOURCE_DIR="${SRC_DIR}/avogadroapp-${VERSION}"
 
@@ -111,6 +119,9 @@ parse_arguments() {
     PATH_VERSION=""
   fi
 
+  SPGLIB_SOURCE_DIR="${TEMP_SPGLIB_SOURCE_DIR}"
+  SPGLIB_BUILD_DIR="${HOME}/software/build/spglib/${SPGLIB_VERSION}"
+  SPGLIB_BUILD_SUBDIR="${SPGLIB_BUILD_DIR}/build"
   LIB_SOURCE_DIR="${TEMP_LIB_SOURCE_DIR}"
   APP_SOURCE_DIR="${TEMP_APP_SOURCE_DIR}"
 }
@@ -147,6 +158,98 @@ check_dependencies() {
   }
   command -v gcc >/dev/null || {
     echo "Error: gcc not found in PATH" >&2
+    return 1
+  }
+}
+
+# Download Spglib repository
+#
+# Exit codes:
+#   0 - Success or already downloaded
+#   1 - Download failed
+download_spglib() {
+  local temp_src="${TEMP_SPGLIB_SOURCE_DIR}"
+  local archive="${SRC_DIR}/spglib-${SPGLIB_VERSION}.tar.gz"
+  local download_url="https://github.com/atztogo/spglib/archive/refs/tags/${SPGLIB_GIT_REF}.tar.gz"
+
+  if [[ ! -d "${temp_src}" ]]; then
+    if [[ -f "${archive}" ]]; then
+      echo "Using existing spglib archive: spglib-${SPGLIB_VERSION}.tar.gz"
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Spglib extraction failed" >&2
+        return 1
+      }
+      if [[ -d "${SRC_DIR}/spglib-${SPGLIB_GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/spglib-${SPGLIB_GIT_REF}" "${temp_src}"
+      fi
+    else
+      echo "Downloading Spglib ${SPGLIB_GIT_REF}..."
+      wget -P "${SRC_DIR}" "${download_url}" -O "${archive}" || {
+        echo "Error: Spglib download failed" >&2
+        return 1
+      }
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Spglib extraction failed" >&2
+        return 1
+      }
+      if [[ -d "${SRC_DIR}/spglib-${SPGLIB_GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/spglib-${SPGLIB_GIT_REF}" "${temp_src}"
+      fi
+    fi
+  fi
+
+  SPGLIB_SOURCE_DIR="${temp_src}"
+
+  mkdir -p "${SPGLIB_BUILD_DIR}" || {
+    echo "Error: Failed to create SPGLIB_BUILD_DIR" >&2
+    return 1
+  }
+}
+
+# Configure Spglib build with CMake
+#
+# Exit codes:
+#   0 - Success
+#   1 - Configuration failed
+configure_spglib_build() {
+  mkdir -p "${SPGLIB_BUILD_SUBDIR}" || return 1
+  cd "${SPGLIB_BUILD_SUBDIR}" || return 1
+
+  echo "Configuring Spglib with CMake..."
+  cmake "${SPGLIB_SOURCE_DIR}" \
+    -DCMAKE_INSTALL_PREFIX="${SPGLIB_BUILD_DIR}" \
+    -DCMAKE_BUILD_TYPE=Release || {
+    echo "Error: Spglib CMake configuration failed" >&2
+    return 1
+  }
+}
+
+# Compile Spglib from source
+#
+# Exit codes:
+#   0 - Success
+#   1 - Compilation failed
+compile_spglib() {
+  cd "${SPGLIB_BUILD_SUBDIR}" || return 1
+
+  echo "Building Spglib..."
+  cmake --build . -j "$(nproc)" || {
+    echo "Error: Spglib compilation failed" >&2
+    return 1
+  }
+}
+
+# Install Spglib using CMake install
+#
+# Exit codes:
+#   0 - Success
+#   1 - Installation failed
+install_spglib() {
+  cd "${SPGLIB_BUILD_SUBDIR}" || return 1
+
+  echo "Installing Spglib to ${SPGLIB_BUILD_DIR}..."
+  cmake --install . || {
+    echo "Error: Spglib installation failed" >&2
     return 1
   }
 }
@@ -482,6 +585,10 @@ main() {
   validate_parameters || return 1
   check_dependencies || return 1
   create_directories || return 1
+  download_spglib || return 1
+  configure_spglib_build || return 1
+  compile_spglib || return 1
+  install_spglib || return 1
   clone_lib_repository || return 1
   clone_app_repository || return 1
   configure_lib_build || return 1
