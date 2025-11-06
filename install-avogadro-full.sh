@@ -112,7 +112,7 @@ parse_arguments() {
   # Set up derived variables
   GIT_REF="${VERSION#v}"
   SPGLIB_GIT_REF="v${SPGLIB_VERSION#v}"
-  GLEW_GIT_REF="glew-${GLEW_VERSION}"
+  GLEW_GIT_REF="v${GLEW_VERSION}"
   TEMP_SPGLIB_SOURCE_DIR="${SRC_DIR}/spglib-${SPGLIB_VERSION}"
   TEMP_GLEW_SOURCE_DIR="${SRC_DIR}/glew-${GLEW_VERSION}"
   TEMP_LIB_SOURCE_DIR="${SRC_DIR}/avogadrolibs-${VERSION}"

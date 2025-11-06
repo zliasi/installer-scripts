@@ -62,7 +62,7 @@ parse_arguments() {
   done
 
   # Set up derived variables
-  GIT_REF="glew-${VERSION}"
+  GIT_REF="v${VERSION}"
   TEMP_SOURCE_DIR="${SRC_DIR}/glew-${VERSION}"
 
   if [[ "${VERSION}" =~ ^[0-9] ]]; then
