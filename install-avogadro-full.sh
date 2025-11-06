@@ -100,7 +100,7 @@ parse_arguments() {
 
   # Set up derived variables
   GIT_REF="${VERSION#v}"
-  TEMP_LIB_SOURCE_DIR="${SRC_DIR}/avogadro-${VERSION}"
+  TEMP_LIB_SOURCE_DIR="${SRC_DIR}/avogadrolibs-${VERSION}"
   TEMP_APP_SOURCE_DIR="${SRC_DIR}/avogadroapp-${VERSION}"
 
   if [[ "${VERSION}" =~ ^[0-9] ]]; then
@@ -170,19 +170,19 @@ create_directories() {
 #   1 - Download failed
 clone_lib_repository() {
   local temp_src="${TEMP_LIB_SOURCE_DIR}"
-  local archive="${SRC_DIR}/avogadro-${VERSION}.tar.gz"
-  local download_url="https://github.com/openchemistry/avogadro/archive/refs/tags/${GIT_REF}.tar.gz"
+  local archive="${SRC_DIR}/avogadrolibs-${VERSION}.tar.gz"
+  local download_url="https://github.com/openchemistry/avogadrolibs/archive/refs/tags/${GIT_REF}.tar.gz"
 
   if [[ ! -d "${temp_src}" ]]; then
     if [[ -f "${archive}" ]]; then
-      echo "Using existing archive: avogadro-${VERSION}.tar.gz"
+      echo "Using existing archive: avogadrolibs-${VERSION}.tar.gz"
       tar -xf "${archive}" -C "${SRC_DIR}" || {
         echo "Error: Extraction failed" >&2
         return 1
       }
       # GitHub archives extract with repo-TAG format
-      if [[ -d "${SRC_DIR}/avogadro-${GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
-        mv "${SRC_DIR}/avogadro-${GIT_REF}" "${temp_src}"
+      if [[ -d "${SRC_DIR}/avogadrolibs-${GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/avogadrolibs-${GIT_REF}" "${temp_src}"
       fi
     else
       echo "Downloading Avogadro libraries ${GIT_REF}..."
@@ -195,8 +195,8 @@ clone_lib_repository() {
         return 1
       }
       # GitHub archives extract with repo-TAG format
-      if [[ -d "${SRC_DIR}/avogadro-${GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
-        mv "${SRC_DIR}/avogadro-${GIT_REF}" "${temp_src}"
+      if [[ -d "${SRC_DIR}/avogadrolibs-${GIT_REF}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/avogadrolibs-${GIT_REF}" "${temp_src}"
       fi
     fi
   fi
@@ -205,12 +205,12 @@ clone_lib_repository() {
     local actual_version
     actual_version=$(determine_dev_version "${temp_src}")
     PATH_VERSION="${actual_version}"
-    LIB_SOURCE_DIR="${SRC_DIR}/avogadro-${PATH_VERSION}"
+    LIB_SOURCE_DIR="${SRC_DIR}/avogadrolibs-${PATH_VERSION}"
     if [[ "${temp_src}" != "${LIB_SOURCE_DIR}" ]] && [[ -d "${temp_src}" ]]; then
       mv "${temp_src}" "${LIB_SOURCE_DIR}"
     fi
   else
-    LIB_SOURCE_DIR="${SRC_DIR}/avogadro-${PATH_VERSION}"
+    LIB_SOURCE_DIR="${SRC_DIR}/avogadrolibs-${PATH_VERSION}"
     if [[ "${temp_src}" != "${LIB_SOURCE_DIR}" ]] && [[ -d "${temp_src}" ]]; then
       mv "${temp_src}" "${LIB_SOURCE_DIR}"
     fi
@@ -417,12 +417,12 @@ verify_installation() {
 # Exit codes:
 #   0 - Always succeeds (cleanup warnings non-fatal)
 archive_source() {
-  local lib_archive="${SRC_DIR}/avogadro-${PATH_VERSION}.tar.gz"
+  local lib_archive="${SRC_DIR}/avogadrolibs-${PATH_VERSION}.tar.gz"
   local app_archive="${SRC_DIR}/avogadroapp-${PATH_VERSION}.tar.gz"
 
   echo "Creating source archives..."
-  tar -czf "${lib_archive}" -C "${SRC_DIR}" "avogadro-${PATH_VERSION}" || {
-    echo "Warning: Failed to create avogadro archive" >&2
+  tar -czf "${lib_archive}" -C "${SRC_DIR}" "avogadrolibs-${PATH_VERSION}" || {
+    echo "Warning: Failed to create avogadrolibs archive" >&2
   }
 
   tar -czf "${app_archive}" -C "${SRC_DIR}" "avogadroapp-${PATH_VERSION}" || {
