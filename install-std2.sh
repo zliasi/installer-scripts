@@ -242,6 +242,13 @@ configure_build() {
       return 1
     }
     set -u
+
+    # Create symlink from source directory to persistent build location
+    echo "Creating symlink from source to persistent build location..."
+    rm -f "${SOURCE_DIR}/libcint/build"
+    ln -sfn "${LIBCINT_BUILD_DIR}" "${SOURCE_DIR}/libcint/build" || {
+      echo "Warning: Failed to create symlink for libcint" >&2
+    }
   fi
 }
 
@@ -255,7 +262,8 @@ compile_project() {
 
   echo "Building std2 with Make and Intel Fortran..."
 
-  export LD_LIBRARY_PATH="${LIBCINT_BUILD_DIR}:${LD_LIBRARY_PATH:-}"
+  # Use both source and actual location to ensure linker finds libcint
+  export LD_LIBRARY_PATH="${SOURCE_DIR}/libcint/build:${LIBCINT_BUILD_DIR}:${LD_LIBRARY_PATH:-}"
 
   echo "Note: Using serial compilation due to Fortran module dependencies"
   make PREFIX="${BUILD_DIR}" FC=ifx CC=icx || {
