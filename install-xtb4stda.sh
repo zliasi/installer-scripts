@@ -4,7 +4,7 @@
 # Usage: install-xtb4stda.sh [VERSION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION      - Release version (e.g., 1.1.1) (default: 1.1.1)
+#   VERSION      - Release version (e.g., 1.0) (default: 1.0)
 #   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Notes:
@@ -28,7 +28,7 @@ set -u
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_BASE_DIR="${HOME}/software/build"
 
-VERSION="${1:-1.1.1}"
+VERSION="${1:-1.0}"
 SYMLINK_NAME="${2:-default}"
 GIT_REF="v${VERSION#v}"
 TEMP_SOURCE_DIR="${SRC_DIR}/xtb4stda-${VERSION}"
