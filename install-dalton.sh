@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 # Install Dalton with version management via symlinks.
 #
-# Usage: install-dalton.sh [VERSION] [PRECISION]
+# Usage: install-dalton.sh [OPTIONS] [PRECISION]
 #
 # Arguments:
-#   VERSION   - Release version (e.g., 2025.0) (default: 2025.0)
 #   PRECISION - Integer size: lp64 or ilp64 (default: lp64)
+#
+# Options:
+#   --dev           - Install latest development version (uses main branch)
+#   --version VER   - Install specific release version (default: 2020.1)
+#
+# Examples:
+#   ./install-dalton.sh                  # Install latest release 2020.1
+#   ./install-dalton.sh --dev            # Install development version
+#   ./install-dalton.sh --version 2025.0 # Install specific version
+#   ./install-dalton.sh ilp64            # Latest release with ilp64 precision
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -13,22 +22,53 @@
 
 set -euo pipefail
 
-readonly VERSION="${1:-2025.0}"
-readonly GIT_REF="v${VERSION#v}"
-readonly PRECISION="${2:-lp64}"
+VERSION="2020.1"
+PRECISION="lp64"
+USE_DEV=false
+GIT_REF=""
+IS_DEV=false
+
+# Parse command line arguments
+#
+# Exit codes:
+#   0 - Arguments parsed successfully
+#   1 - Invalid arguments
+parse_arguments() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dev)
+        USE_DEV=true
+        VERSION="main"
+        shift
+        ;;
+      --version)
+        VERSION="$2"
+        USE_DEV=false
+        shift 2
+        ;;
+      --*)
+        echo "Error: Unknown option: $1" >&2
+        return 1
+        ;;
+      *)
+        if [[ "${PRECISION}" == "lp64" ]] && [[ "$1" =~ ^(lp64|ilp64)$ ]]; then
+          PRECISION="$1"
+        else
+          echo "Error: Unexpected argument: $1" >&2
+          return 1
+        fi
+        shift
+        ;;
+    esac
+  done
+}
+
 readonly SRC_DIR="${HOME}/software/src/external"
-readonly TEMP_SOURCE_DIR="${SRC_DIR}/dalton-${VERSION}"
 
-if [[ "${VERSION}" =~ ^[0-9] ]]; then
-  readonly IS_DEV=false
-  PATH_VERSION="${VERSION}"
-else
-  readonly IS_DEV=true
-  PATH_VERSION=""
-fi
-
-SOURCE_DIR="${TEMP_SOURCE_DIR}"
+SOURCE_DIR=""
 BUILD_DIR=""
+TEMP_SOURCE_DIR=""
+PATH_VERSION=""
 
 readonly OPENMPI_DIR="${HOME}/software/build/openmpi/default"
 readonly OPENBLAS_DIR="${HOME}/software/build/openblas/default"
@@ -69,6 +109,30 @@ determine_dev_version() {
   else
     date +%Y.%m-dev
   fi
+}
+
+# Initialize version-dependent variables after parsing
+#
+# Exit codes:
+#   0 - Always succeeds
+initialize_version_variables() {
+  if [[ "${USE_DEV}" == "true" ]]; then
+    IS_DEV=true
+    GIT_REF="${VERSION}"  # Use main branch directly
+    TEMP_SOURCE_DIR="${SRC_DIR}/dalton-dev"
+    PATH_VERSION=""  # Will be determined from repo
+  else
+    if [[ "${VERSION}" =~ ^[0-9] ]]; then
+      IS_DEV=false
+      PATH_VERSION="${VERSION}"
+    else
+      IS_DEV=true
+      PATH_VERSION=""
+    fi
+    GIT_REF="v${VERSION#v}"
+    TEMP_SOURCE_DIR="${SRC_DIR}/dalton-${VERSION}"
+  fi
+  SOURCE_DIR="${TEMP_SOURCE_DIR}"
 }
 
 # Validate required parameters
@@ -122,11 +186,19 @@ create_directories() {
 #   1 - Clone failed
 clone_repository() {
   local temp_src="${TEMP_SOURCE_DIR}"
-  local archive="${SRC_DIR}/dalton-${VERSION}.tar.gz"
+  local archive_name
+
+  if [[ "${USE_DEV}" == "true" ]]; then
+    archive_name="dalton-dev.tar.gz"
+  else
+    archive_name="dalton-${VERSION}.tar.gz"
+  fi
+
+  local archive="${SRC_DIR}/${archive_name}"
 
   if [[ ! -d "${temp_src}" ]]; then
     if [[ -f "${archive}" ]]; then
-      echo "Using existing archive: dalton-${VERSION}.tar.gz"
+      echo "Using existing archive: ${archive_name}"
       tar -xf "${archive}" -C "${SRC_DIR}" || {
         echo "Error: Extraction failed" >&2
         return 1
@@ -223,10 +295,21 @@ setup_symlink() {
 # Exit codes:
 #   0 - Always succeeds (cleanup warnings non-fatal)
 archive_source() {
-  local archive="${SRC_DIR}/dalton-${PATH_VERSION}.tar.gz"
+  local archive_name
+  local dir_name
+
+  if [[ "${USE_DEV}" == "true" ]]; then
+    archive_name="dalton-dev.tar.gz"
+    dir_name="dalton-${PATH_VERSION}"
+  else
+    archive_name="dalton-${PATH_VERSION}.tar.gz"
+    dir_name="dalton-${PATH_VERSION}"
+  fi
+
+  local archive="${SRC_DIR}/${archive_name}"
 
   echo "Creating source archive..."
-  tar -czf "${archive}" -C "${SRC_DIR}" "dalton-${PATH_VERSION}" || {
+  tar -czf "${archive}" -C "${SRC_DIR}" "${dir_name}" || {
     echo "Warning: Failed to create archive" >&2
   }
 
@@ -250,6 +333,8 @@ verify_installation() {
 }
 
 main() {
+  parse_arguments "$@" || return 1
+  initialize_version_variables
   validate_parameters || return 1
   validate_dependencies || return 1
   create_directories || return 1

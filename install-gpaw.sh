@@ -4,7 +4,7 @@
 # Usage: install-gpaw.sh [VERSION]
 #
 # Arguments:
-#   VERSION - GPAW version (default: 25.1.0)
+#   VERSION - GPAW version (default: 25.7.0)
 #
 # Prerequisites:
 #   siteconfig.py must exist at ~/software/src/external/gpaw-VERSION/siteconfig.py
@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-readonly VERSION="${1:-25.1.0}"
+readonly VERSION="${1:-25.7.0}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/gpaw/${VERSION}"
 readonly VENV_DIR="${BUILD_DIR}/venv"

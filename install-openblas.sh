@@ -4,7 +4,7 @@
 # Usage: install-openblas.sh [VERSION] [PRECISION]
 #
 # Arguments:
-#   VERSION   - OpenBLAS version (default: 0.3.28)
+#   VERSION   - OpenBLAS version (default: 0.3.30)
 #   PRECISION - Integer size: lp64 or ilp64 (default: lp64)
 #
 # Paths:
@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-readonly VERSION="${1:-0.3.28}"
+readonly VERSION="${1:-0.3.30}"
 readonly PRECISION="${2:-lp64}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/openblas/${VERSION}-${PRECISION}"
