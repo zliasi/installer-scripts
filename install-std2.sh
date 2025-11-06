@@ -19,6 +19,11 @@
 
 set -euo pipefail
 
+# Source Intel oneAPI environment early so it persists throughout script execution
+set +u
+source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1 || true
+set -u
+
 readonly SRC_DIR="${HOME}/software/src/external"
 
 VERSION="${1:-2.0.1}"
@@ -186,15 +191,6 @@ clone_repository() {
 configure_build() {
   cd "${SOURCE_DIR}" || return 1
 
-  echo "Sourcing Intel oneAPI environment..."
-  set +u
-  source /software/kemi/intel/oneapi/setvars.sh --force || {
-    echo "Error: Failed to source Intel oneAPI environment" >&2
-    set -u
-    return 1
-  }
-  set -u
-
   echo "Configuring std2 with Make and Intel Fortran..."
 
   echo "Checking/downloading libcint..."
@@ -215,10 +211,6 @@ configure_build() {
 compile_project() {
   cd "${SOURCE_DIR}" || return 1
 
-  set +u
-  source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1
-  set -u
-
   echo "Building std2 with Make and Intel Fortran..."
 
   make PREFIX="${BUILD_DIR}" FC=ifort CC=icx -j "$(nproc)" || {
@@ -234,10 +226,6 @@ compile_project() {
 #   1 - Installation failed
 install_executable() {
   cd "${SOURCE_DIR}" || return 1
-
-  set +u
-  source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1
-  set -u
 
   echo "Installing std2 to ${BUILD_DIR}..."
 
