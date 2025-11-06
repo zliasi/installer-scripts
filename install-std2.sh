@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build and install std2 from source with GNU Fortran and Make.
+# Build and install std2 from source with Intel oneAPI Fortran and Make.
 #
 # Usage: install-std2.sh [VERSION] [SYMLINK_NAME]
 #
@@ -8,13 +8,14 @@
 #   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Notes:
-#   std2 uses Make build system with GNU Fortran (gfortran)
+#   std2 uses Make build system with Intel Fortran (ifort)
 #   Requires libcint to be downloaded separately during build
-#   No module loading required - uses system gfortran
+#   Requires Intel oneAPI to be installed at /software/kemi/intel/oneapi
 #
 # Paths:
 #   Source: ~/software/src/external
 #   Build:  ~/software/build/std2/VERSION
+#   Intel oneAPI: /software/kemi/intel/oneapi
 
 set -euo pipefail
 
@@ -100,12 +101,8 @@ validate_parameters() {
 #   0 - All dependencies found
 #   1 - Missing dependencies
 check_dependencies() {
-  command -v gfortran >/dev/null || {
-    echo "Error: gfortran not found in PATH" >&2
-    return 1
-  }
-  command -v gcc >/dev/null || {
-    echo "Error: gcc not found in PATH" >&2
+  [[ -f "/software/kemi/intel/oneapi/setvars.sh" ]] || {
+    echo "Error: Intel oneAPI not found at /software/kemi/intel/oneapi" >&2
     return 1
   }
   command -v make >/dev/null || {
@@ -181,7 +178,7 @@ clone_repository() {
   }
 }
 
-# Configure std2 build with Intel compilers and CMake
+# Configure std2 build with Intel Fortran and Make
 #
 # Exit codes:
 #   0 - Success
@@ -189,7 +186,13 @@ clone_repository() {
 configure_build() {
   cd "${SOURCE_DIR}" || return 1
 
-  echo "Configuring std2 with Make and GNU Fortran..."
+  echo "Sourcing Intel oneAPI environment..."
+  source /software/kemi/intel/oneapi/setvars.sh --force || {
+    echo "Error: Failed to source Intel oneAPI environment" >&2
+    return 1
+  }
+
+  echo "Configuring std2 with Make and Intel Fortran..."
 
   echo "Checking/downloading libcint..."
   if [[ ! -d "${SOURCE_DIR}/libcint" ]]; then
@@ -209,9 +212,11 @@ configure_build() {
 compile_project() {
   cd "${SOURCE_DIR}" || return 1
 
-  echo "Building std2 with Make and gfortran..."
+  source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1
 
-  make PREFIX="${BUILD_DIR}" FC=gfortran -j "$(nproc)" || {
+  echo "Building std2 with Make and Intel Fortran..."
+
+  make PREFIX="${BUILD_DIR}" FC=ifort CC=icx -j "$(nproc)" || {
     echo "Error: Compilation failed" >&2
     return 1
   }
@@ -225,9 +230,11 @@ compile_project() {
 install_executable() {
   cd "${SOURCE_DIR}" || return 1
 
+  source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1
+
   echo "Installing std2 to ${BUILD_DIR}..."
 
-  make PREFIX="${BUILD_DIR}" FC=gfortran install || {
+  make PREFIX="${BUILD_DIR}" FC=ifort CC=icx install || {
     echo "Error: Installation failed" >&2
     return 1
   }
@@ -293,28 +300,34 @@ generate_dependencies_file() {
 
 Required external software/modules (must be sourced in submit scripts):
 
-1. GNU Compiler Collection (GCC/gfortran)
-   Version: GCC 11.5.0 or later
+1. Intel oneAPI
+   Version: Latest stable
+   Location: /software/kemi/intel/oneapi
    Components:
-     - gfortran: GNU Fortran compiler
-     - gcc: GNU C compiler
-   Usually pre-installed on Linux systems
-   Purpose: Provides Fortran and C compilers for std2
+     - ifort: Intel Fortran compiler
+     - icx: Intel C/C++ compiler
+   Purpose: Provides Fortran and C/C++ compilers for std2
    Required for: Building and running std2
 
 === Usage in HPC Submit Scripts ===
 
+Intel oneAPI must be sourced before running std2:
+
 Example bash submit script for std2:
   #!/bin/bash
+  source /software/kemi/intel/oneapi/setvars.sh --force
+
   export STD2HOME=~/software/build/std2/default
   export PATH=$PATH:${STD2HOME}/bin
 
   std2 input.in
 
-Example job submission with dependencies:
+Example SLURM job submission with Intel oneAPI:
   #!/bin/bash
   #SBATCH --job-name=std2_calc
   #SBATCH --partition=cpu
+
+  source /software/kemi/intel/oneapi/setvars.sh --force
 
   export STD2HOME=~/software/build/std2/default
   ${STD2HOME}/bin/std2 input.in
