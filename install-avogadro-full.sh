@@ -292,10 +292,18 @@ configure_lib_build() {
   mkdir -p "${LIB_BUILD_SUBDIR}" || return 1
   cd "${LIB_BUILD_SUBDIR}" || return 1
 
+  local cmake_prefix_path="${CMAKE_PREFIX_PATH:-}"
+  if [[ -z "${cmake_prefix_path}" ]]; then
+    cmake_prefix_path="${HOME}/software/build/spglib/default:${HOME}/software/build"
+  else
+    cmake_prefix_path="${HOME}/software/build/spglib/default:${HOME}/software/build:${cmake_prefix_path}"
+  fi
+
   echo "Configuring Avogadro libraries with CMake..."
   cmake "${LIB_SOURCE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_PREFIX_PATH="${cmake_prefix_path}" \
     -DENABLE_TESTING=ON || {
     echo "Error: CMake configuration failed" >&2
     return 1
@@ -341,11 +349,18 @@ configure_app_build() {
   mkdir -p "${APP_BUILD_SUBDIR}" || return 1
   cd "${APP_BUILD_SUBDIR}" || return 1
 
+  local cmake_prefix_path="${BUILD_DIR}"
+  if [[ -n "${CMAKE_PREFIX_PATH:-}" ]]; then
+    cmake_prefix_path="${BUILD_DIR}:${CMAKE_PREFIX_PATH}"
+  else
+    cmake_prefix_path="${BUILD_DIR}:${HOME}/software/build/spglib/default:${HOME}/software/build"
+  fi
+
   echo "Configuring Avogadro application with CMake..."
   cmake "${APP_SOURCE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="${BUILD_DIR}" \
+    -DCMAKE_PREFIX_PATH="${cmake_prefix_path}" \
     -DENABLE_TESTING=ON || {
     echo "Error: CMake configuration failed" >&2
     return 1
