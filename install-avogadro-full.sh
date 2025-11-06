@@ -410,7 +410,10 @@ configure_lib_build() {
   fi
 
   echo "Configuring Avogadro libraries with CMake..."
-  echo "CMAKE_PREFIX_PATH=${cmake_prefix_path}"
+  echo "  SPGLIB_BUILD_DIR=${SPGLIB_BUILD_DIR}"
+  echo "  CMAKE_PREFIX_PATH=${cmake_prefix_path}"
+  echo "  LIB_SOURCE_DIR=${LIB_SOURCE_DIR}"
+  [[ -d "${SPGLIB_BUILD_DIR}/lib64/cmake/Spglib" ]] && echo "  Found SpglibConfig.cmake at: ${SPGLIB_BUILD_DIR}/lib64/cmake/Spglib/" || echo "  WARNING: SpglibConfig.cmake NOT found at ${SPGLIB_BUILD_DIR}/lib64/cmake/Spglib/"
   cmake "${LIB_SOURCE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
@@ -476,7 +479,10 @@ configure_app_build() {
   fi
 
   echo "Configuring Avogadro application with CMake..."
-  echo "CMAKE_PREFIX_PATH=${cmake_prefix_path}"
+  echo "  SPGLIB_BUILD_DIR=${SPGLIB_BUILD_DIR}"
+  echo "  CMAKE_PREFIX_PATH=${cmake_prefix_path}"
+  echo "  APP_SOURCE_DIR=${APP_SOURCE_DIR}"
+  [[ -d "${SPGLIB_BUILD_DIR}/lib64/cmake/Spglib" ]] && echo "  Found SpglibConfig.cmake at: ${SPGLIB_BUILD_DIR}/lib64/cmake/Spglib/" || echo "  WARNING: SpglibConfig.cmake NOT found at ${SPGLIB_BUILD_DIR}/lib64/cmake/Spglib/"
   cmake "${APP_SOURCE_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=Release \
