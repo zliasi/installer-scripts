@@ -604,10 +604,13 @@ configure_lib_build() {
 
   local glew_args=()
   if [[ -n "${GLEW_INCLUDE_DIRS:-}" ]]; then
-    glew_args+=("-DGLEW_INCLUDE_DIRS=${GLEW_INCLUDE_DIRS}")
-    glew_args+=("-DGLEW_LIBRARIES=${GLEW_LIBRARIES}")
-    echo "  Using GLEW_INCLUDE_DIRS=${GLEW_INCLUDE_DIRS}"
-    echo "  Using GLEW_LIBRARIES=${GLEW_LIBRARIES}"
+    local glew_root=$(dirname "${GLEW_INCLUDE_DIRS}")
+    glew_args+=("-DGLEW_DIR=${glew_root}")
+    glew_args+=("-DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIRS}")
+    glew_args+=("-DGLEW_LIBRARY=${GLEW_LIBRARIES}")
+    echo "  Using GLEW_DIR=${glew_root}"
+    echo "  Using GLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIRS}"
+    echo "  Using GLEW_LIBRARY=${GLEW_LIBRARIES}"
   else
     echo "  GLEW not available, disabling GLEW in cmake"
     glew_args+=("-DCMAKE_DISABLE_FIND_PACKAGE_GLEW=ON")
@@ -690,10 +693,13 @@ configure_app_build() {
 
   local glew_args=()
   if [[ -n "${GLEW_INCLUDE_DIRS:-}" ]]; then
-    glew_args+=("-DGLEW_INCLUDE_DIRS=${GLEW_INCLUDE_DIRS}")
-    glew_args+=("-DGLEW_LIBRARIES=${GLEW_LIBRARIES}")
-    echo "  Using GLEW_INCLUDE_DIRS=${GLEW_INCLUDE_DIRS}"
-    echo "  Using GLEW_LIBRARIES=${GLEW_LIBRARIES}"
+    local glew_root=$(dirname "${GLEW_INCLUDE_DIRS}")
+    glew_args+=("-DGLEW_DIR=${glew_root}")
+    glew_args+=("-DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIRS}")
+    glew_args+=("-DGLEW_LIBRARY=${GLEW_LIBRARIES}")
+    echo "  Using GLEW_DIR=${glew_root}"
+    echo "  Using GLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIRS}"
+    echo "  Using GLEW_LIBRARY=${GLEW_LIBRARIES}"
   else
     echo "  GLEW not available, disabling GLEW in cmake"
     glew_args+=("-DCMAKE_DISABLE_FIND_PACKAGE_GLEW=ON")
