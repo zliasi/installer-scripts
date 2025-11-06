@@ -9,8 +9,9 @@
 #
 # Notes:
 #   std2 uses Make build system with Intel Fortran (ifx)
-#   Requires libcint to be downloaded separately during build
+#   Builds libcint with cmake during std2 configuration
 #   Requires Intel oneAPI 2024+ to be installed at /software/kemi/intel/oneapi
+#   Requires cmake for building libcint dependency
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -114,6 +115,10 @@ check_dependencies() {
     echo "Error: make not found in PATH" >&2
     return 1
   }
+  command -v cmake >/dev/null || {
+    echo "Error: cmake not found in PATH" >&2
+    return 1
+  }
   command -v git >/dev/null || {
     echo "Error: git not found in PATH" >&2
     return 1
@@ -193,13 +198,34 @@ configure_build() {
 
   echo "Configuring std2 with Make and Intel Fortran..."
 
-  echo "Checking/downloading libcint..."
-  if [[ ! -d "${SOURCE_DIR}/libcint" ]]; then
-    mkdir -p "${SOURCE_DIR}/libcint"
-    git clone https://github.com/sunqm/libcint.git "${SOURCE_DIR}/libcint" || {
-      echo "Error: Failed to clone libcint" >&2
+  echo "Checking/downloading and building libcint..."
+  if [[ ! -d "${SOURCE_DIR}/libcint/build" ]]; then
+    if [[ ! -d "${SOURCE_DIR}/libcint" ]]; then
+      echo "Cloning libcint from GitHub..."
+      git clone https://github.com/sunqm/libcint.git "${SOURCE_DIR}/libcint" || {
+        echo "Error: Failed to clone libcint" >&2
+        return 1
+      }
+    fi
+
+    echo "Building libcint with cmake..."
+    mkdir -p "${SOURCE_DIR}/libcint/build"
+    cd "${SOURCE_DIR}/libcint/build" || return 1
+
+    set +u
+    cmake .. || {
+      echo "Error: libcint cmake configuration failed" >&2
+      set -u
       return 1
     }
+    cmake --build . || {
+      echo "Error: libcint build failed" >&2
+      set -u
+      return 1
+    }
+    set -u
+
+    cd "${SOURCE_DIR}" || return 1
   fi
 }
 
@@ -212,6 +238,8 @@ compile_project() {
   cd "${SOURCE_DIR}" || return 1
 
   echo "Building std2 with Make and Intel Fortran..."
+
+  export LD_LIBRARY_PATH="${SOURCE_DIR}/libcint/build:${LD_LIBRARY_PATH:-}"
 
   make PREFIX="${BUILD_DIR}" FC=ifx CC=icx -j "$(nproc)" || {
     echo "Error: Compilation failed" >&2
@@ -226,6 +254,8 @@ compile_project() {
 #   1 - Installation failed
 install_executable() {
   cd "${SOURCE_DIR}" || return 1
+
+  export LD_LIBRARY_PATH="${SOURCE_DIR}/libcint/build:${LD_LIBRARY_PATH:-}"
 
   echo "Installing std2 to ${BUILD_DIR}..."
 
@@ -305,20 +335,28 @@ Required external software/modules (must be sourced in submit scripts):
    Purpose: Provides Fortran and C/C++ compilers for std2
    Required for: Building and running std2
 
+2. libcint (integral computation library)
+   Built during installation as dependency of std2
+   Location: ~/software/src/external/std2-<VERSION>/libcint/build
+   Purpose: Provides one- and two-electron integral computation
+   Required for: Runtime execution of std2
+
 === Usage in HPC Submit Scripts ===
 
-Intel oneAPI must be sourced before running std2:
+Intel oneAPI must be sourced before running std2. Additionally, libcint library path must be added to LD_LIBRARY_PATH:
 
 Example bash submit script for std2:
   #!/bin/bash
   source /software/kemi/intel/oneapi/setvars.sh --force
 
   export STD2HOME=~/software/build/std2/default
+  export STD2SRC=~/software/src/external/std2-2.0.1
+  export LD_LIBRARY_PATH=${STD2SRC}/libcint/build:$LD_LIBRARY_PATH
   export PATH=$PATH:${STD2HOME}/bin
 
   std2 input.in
 
-Example SLURM job submission with Intel oneAPI:
+Example SLURM job submission with Intel oneAPI and libcint:
   #!/bin/bash
   #SBATCH --job-name=std2_calc
   #SBATCH --partition=cpu
@@ -326,6 +364,9 @@ Example SLURM job submission with Intel oneAPI:
   source /software/kemi/intel/oneapi/setvars.sh --force
 
   export STD2HOME=~/software/build/std2/default
+  export STD2SRC=~/software/src/external/std2-2.0.1
+  export LD_LIBRARY_PATH=${STD2SRC}/libcint/build:$LD_LIBRARY_PATH
+
   ${STD2HOME}/bin/std2 input.in
 
 DEPS
