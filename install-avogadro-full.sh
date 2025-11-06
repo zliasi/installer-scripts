@@ -263,21 +263,42 @@ install_spglib() {
   }
 }
 
-# Clone GLEW repository
+# Download GLEW repository
 #
 # Exit codes:
-#   0 - Success or already cloned
-#   1 - Clone failed
+#   0 - Success or already downloaded
+#   1 - Download failed
 download_glew() {
   local temp_src="${TEMP_GLEW_SOURCE_DIR}"
+  local archive="${SRC_DIR}/glew-${GLEW_VERSION}.tar.gz"
+  local download_url="https://github.com/nigels-com/glew/archive/refs/tags/${GLEW_VERSION}.tar.gz"
 
   if [[ ! -d "${temp_src}" ]]; then
-    echo "Cloning GLEW ${GLEW_GIT_REF}..."
-    git clone --depth 1 --branch "${GLEW_GIT_REF}" \
-      https://github.com/nigels-com/glew.git "${temp_src}" || {
-      echo "Error: Clone failed" >&2
-      return 1
-    }
+    if [[ -f "${archive}" ]]; then
+      echo "Using existing archive: glew-${GLEW_VERSION}.tar.gz"
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+      # GitHub archives extract to glew-VERSION format
+      if [[ -d "${SRC_DIR}/glew-${GLEW_VERSION}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/glew-${GLEW_VERSION}" "${temp_src}"
+      fi
+    else
+      echo "Downloading GLEW ${GLEW_VERSION}..."
+      wget -P "${SRC_DIR}" "${download_url}" -O "${archive}" || {
+        echo "Error: Download failed" >&2
+        return 1
+      }
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+      # GitHub archives extract to glew-VERSION format
+      if [[ -d "${SRC_DIR}/glew-${GLEW_VERSION}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/glew-${GLEW_VERSION}" "${temp_src}"
+      fi
+    fi
   fi
 
   GLEW_SOURCE_DIR="${temp_src}"

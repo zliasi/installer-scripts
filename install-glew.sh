@@ -98,8 +98,8 @@ check_dependencies() {
     echo "Error: make not found in PATH" >&2
     return 1
   }
-  command -v git >/dev/null || {
-    echo "Error: git not found in PATH" >&2
+  command -v wget >/dev/null || {
+    echo "Error: wget not found in PATH" >&2
     return 1
   }
   command -v gcc >/dev/null || {
@@ -120,21 +120,40 @@ create_directories() {
   }
 }
 
-# Clone GLEW source
+# Download GLEW source
 #
 # Exit codes:
-#   0 - Success or already cloned
-#   1 - Clone failed
+#   0 - Success or already downloaded
+#   1 - Download failed
 download_source() {
   local temp_src="${TEMP_SOURCE_DIR}"
+  local archive="${SRC_DIR}/glew-${VERSION}.tar.gz"
+  local download_url="https://github.com/nigels-com/glew/archive/refs/tags/${VERSION}.tar.gz"
 
   if [[ ! -d "${temp_src}" ]]; then
-    echo "Cloning GLEW ${GIT_REF}..."
-    git clone --depth 1 --branch "${GIT_REF}" \
-      https://github.com/nigels-com/glew.git "${temp_src}" || {
-      echo "Error: Clone failed" >&2
-      return 1
-    }
+    if [[ -f "${archive}" ]]; then
+      echo "Using existing archive: glew-${VERSION}.tar.gz"
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+      if [[ -d "${SRC_DIR}/glew-${VERSION}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/glew-${VERSION}" "${temp_src}"
+      fi
+    else
+      echo "Downloading GLEW ${VERSION}..."
+      wget -P "${SRC_DIR}" "${download_url}" -O "${archive}" || {
+        echo "Error: Download failed" >&2
+        return 1
+      }
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+      if [[ -d "${SRC_DIR}/glew-${VERSION}" ]] && [[ ! -d "${temp_src}" ]]; then
+        mv "${SRC_DIR}/glew-${VERSION}" "${temp_src}"
+      fi
+    fi
   fi
 
   SOURCE_DIR="${temp_src}"
@@ -206,11 +225,18 @@ verify_installation() {
   echo "Installed to: ${BUILD_DIR}"
 }
 
-# Remove source directory after installation
+# Create source archive and remove source directory
 #
 # Exit codes:
 #   0 - Always succeeds (cleanup warnings non-fatal)
 archive_source() {
+  local archive="${SRC_DIR}/glew-${PATH_VERSION}.tar.gz"
+
+  echo "Creating source archive..."
+  tar -czf "${archive}" -C "${SRC_DIR}" "glew-${PATH_VERSION}" || {
+    echo "Warning: Failed to create archive" >&2
+  }
+
   echo "Removing source directory..."
   rm -rf "${SOURCE_DIR}" || {
     echo "Warning: Failed to remove source directory" >&2
