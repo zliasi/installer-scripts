@@ -147,6 +147,23 @@ download_source() {
   }
 }
 
+# Patch surf/Makefile to use gcc -M instead of makedepend
+#
+# Exit codes:
+#   0 - Success or already patched
+#   1 - Patch failed
+patch_surf_makefile() {
+  local surf_makefile="${SOURCE_DIR}/src/surf/Makefile"
+
+  if grep -q "makedepend" "${surf_makefile}"; then
+    echo "Patching surf/Makefile to use gcc -M instead of makedepend..."
+    sed -i 's/@ makedepend $(INCLUDE) -f makedep $(DEPEND)/@ $(CC) $(INCLUDE) -M $(DEPEND) > makedep/' "${surf_makefile}" || {
+      echo "Error: Failed to patch surf/Makefile" >&2
+      return 1
+    }
+  fi
+}
+
 # Build MOLDEN from source with gfortran
 #
 # Exit codes:
@@ -154,6 +171,8 @@ download_source() {
 #   1 - Build failed
 build_source() {
   cd "${SOURCE_DIR}" || return 1
+
+  patch_surf_makefile || return 1
 
   echo "Building MOLDEN ${VERSION} with gfortran..."
   make FC=gfortran FCFLAGS="-fallow-argument-mismatch -w -O2" FFLAGS="-fallow-argument-mismatch -w -O2" -j "$(nproc)" 2>&1 | tee build.log || {
