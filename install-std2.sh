@@ -187,10 +187,13 @@ configure_build() {
   cd "${SOURCE_DIR}" || return 1
 
   echo "Sourcing Intel oneAPI environment..."
+  set +u
   source /software/kemi/intel/oneapi/setvars.sh --force || {
     echo "Error: Failed to source Intel oneAPI environment" >&2
+    set -u
     return 1
   }
+  set -u
 
   echo "Configuring std2 with Make and Intel Fortran..."
 
@@ -212,7 +215,9 @@ configure_build() {
 compile_project() {
   cd "${SOURCE_DIR}" || return 1
 
+  set +u
   source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1
+  set -u
 
   echo "Building std2 with Make and Intel Fortran..."
 
@@ -230,7 +235,9 @@ compile_project() {
 install_executable() {
   cd "${SOURCE_DIR}" || return 1
 
+  set +u
   source /software/kemi/intel/oneapi/setvars.sh --force >/dev/null 2>&1
+  set -u
 
   echo "Installing std2 to ${BUILD_DIR}..."
 
