@@ -460,10 +460,13 @@ configure_lib_build() {
   cd "${LIB_BUILD_SUBDIR}" || return 1
 
   local cmake_prefix_path="${CMAKE_PREFIX_PATH:-}"
+  local glew_prefix=""
+  [[ -n "${GLEW_BUILD_DIR}" ]] && glew_prefix="${GLEW_BUILD_DIR}:"
+
   if [[ -z "${cmake_prefix_path}" ]]; then
-    cmake_prefix_path="${GLEW_BUILD_DIR}:${SPGLIB_BUILD_DIR}:${HOME}/software/build"
+    cmake_prefix_path="${glew_prefix}${SPGLIB_BUILD_DIR}:${HOME}/software/build"
   else
-    cmake_prefix_path="${GLEW_BUILD_DIR}:${SPGLIB_BUILD_DIR}:${HOME}/software/build:${cmake_prefix_path}"
+    cmake_prefix_path="${glew_prefix}${SPGLIB_BUILD_DIR}:${HOME}/software/build:${cmake_prefix_path}"
   fi
 
   local pkg_config_path="${PKG_CONFIG_PATH:-}"
@@ -529,10 +532,13 @@ configure_app_build() {
   cd "${APP_BUILD_SUBDIR}" || return 1
 
   local cmake_prefix_path="${BUILD_DIR}"
+  local glew_prefix=""
+  [[ -n "${GLEW_BUILD_DIR}" ]] && glew_prefix="${GLEW_BUILD_DIR}:"
+
   if [[ -n "${CMAKE_PREFIX_PATH:-}" ]]; then
-    cmake_prefix_path="${BUILD_DIR}:${GLEW_BUILD_DIR}:${SPGLIB_BUILD_DIR}:${CMAKE_PREFIX_PATH}"
+    cmake_prefix_path="${BUILD_DIR}:${glew_prefix}${SPGLIB_BUILD_DIR}:${CMAKE_PREFIX_PATH}"
   else
-    cmake_prefix_path="${BUILD_DIR}:${GLEW_BUILD_DIR}:${SPGLIB_BUILD_DIR}:${HOME}/software/build"
+    cmake_prefix_path="${BUILD_DIR}:${glew_prefix}${SPGLIB_BUILD_DIR}:${HOME}/software/build"
   fi
 
   local pkg_config_path="${PKG_CONFIG_PATH:-}"
@@ -678,8 +684,18 @@ main() {
   compile_spglib || return 1
   install_spglib || return 1
   download_glew || return 1
-  build_glew || return 1
-  install_glew || return 1
+  build_glew || {
+    echo "Warning: GLEW build failed, checking if system GLEW is available..."
+    if pkg-config glew >/dev/null 2>&1; then
+      echo "Found system GLEW, continuing without building GLEW..."
+      GLEW_BUILD_DIR=$(pkg-config --variable=libdir glew)
+      GLEW_BUILD_DIR="${GLEW_BUILD_DIR%/lib*}"
+    else
+      echo "Warning: GLEW not available, continuing without GLEW support..."
+      GLEW_BUILD_DIR=""
+    fi
+  }
+  [[ -z "${GLEW_BUILD_DIR}" ]] || install_glew
   clone_lib_repository || return 1
   clone_app_repository || return 1
   configure_lib_build || return 1
