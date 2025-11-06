@@ -8,9 +8,9 @@
 #   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Notes:
-#   std2 uses Make build system with Intel Fortran (ifort)
+#   std2 uses Make build system with Intel Fortran (ifx)
 #   Requires libcint to be downloaded separately during build
-#   Requires Intel oneAPI to be installed at /software/kemi/intel/oneapi
+#   Requires Intel oneAPI 2024+ to be installed at /software/kemi/intel/oneapi
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -213,7 +213,7 @@ compile_project() {
 
   echo "Building std2 with Make and Intel Fortran..."
 
-  make PREFIX="${BUILD_DIR}" FC=ifort CC=icx -j "$(nproc)" || {
+  make PREFIX="${BUILD_DIR}" FC=ifx CC=icx -j "$(nproc)" || {
     echo "Error: Compilation failed" >&2
     return 1
   }
@@ -229,7 +229,7 @@ install_executable() {
 
   echo "Installing std2 to ${BUILD_DIR}..."
 
-  make PREFIX="${BUILD_DIR}" FC=ifort CC=icx install || {
+  make PREFIX="${BUILD_DIR}" FC=ifx CC=icx install || {
     echo "Error: Installation failed" >&2
     return 1
   }
@@ -296,11 +296,12 @@ generate_dependencies_file() {
 Required external software/modules (must be sourced in submit scripts):
 
 1. Intel oneAPI
-   Version: Latest stable
+   Version: 2024.0 or later
    Location: /software/kemi/intel/oneapi
    Components:
-     - ifort: Intel Fortran compiler
-     - icx: Intel C/C++ compiler
+     - ifx: Intel Fortran compiler (LLVM-based)
+     - icx: Intel C compiler
+     - icpx: Intel C++ compiler
    Purpose: Provides Fortran and C/C++ compilers for std2
    Required for: Building and running std2
 
