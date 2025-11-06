@@ -276,7 +276,35 @@ setup_glew() {
   # Try to download and build GLEW first
   download_glew && build_glew && install_glew && {
     echo "GLEW build successful"
-    return 0
+    # Find the installed GLEW headers and libs
+    local glew_include_dir
+    local glew_lib_dir
+
+    if [[ -d "${GLEW_BUILD_DIR}/usr/local/include" ]]; then
+      glew_include_dir="${GLEW_BUILD_DIR}/usr/local/include"
+    elif [[ -d "${GLEW_BUILD_DIR}/usr/include" ]]; then
+      glew_include_dir="${GLEW_BUILD_DIR}/usr/include"
+    fi
+
+    if [[ -f "${GLEW_BUILD_DIR}/usr/local/lib/libGLEW.so" ]]; then
+      glew_lib_dir="${GLEW_BUILD_DIR}/usr/local/lib"
+    elif [[ -f "${GLEW_BUILD_DIR}/usr/local/lib64/libGLEW.so" ]]; then
+      glew_lib_dir="${GLEW_BUILD_DIR}/usr/local/lib64"
+    elif [[ -f "${GLEW_BUILD_DIR}/usr/lib/libGLEW.so" ]]; then
+      glew_lib_dir="${GLEW_BUILD_DIR}/usr/lib"
+    elif [[ -f "${GLEW_BUILD_DIR}/usr/lib64/libGLEW.so" ]]; then
+      glew_lib_dir="${GLEW_BUILD_DIR}/usr/lib64"
+    fi
+
+    if [[ -n "${glew_include_dir}" ]] && [[ -n "${glew_lib_dir}" ]]; then
+      GLEW_INCLUDE_DIRS="${glew_include_dir}"
+      GLEW_LIBRARIES="${glew_lib_dir}/libGLEW.so"
+      echo "Found built GLEW: include=${GLEW_INCLUDE_DIRS}, lib=${GLEW_LIBRARIES}"
+      return 0
+    else
+      echo "Warning: Could not find GLEW headers/libs in ${GLEW_BUILD_DIR}"
+      # Continue to check system GLEW
+    fi
   }
 
   # If build failed, check for system GLEW
