@@ -18,9 +18,12 @@ readonly SRC_DIR="${HOME}/software/src/external"
 VERSION="1.102.1"
 SYMLINK_NAME="default"
 SPGLIB_VERSION="2.3.1"
+GLEW_VERSION="2.2.0"
 GIT_REF=""
 SPGLIB_GIT_REF=""
+GLEW_GIT_REF=""
 TEMP_SPGLIB_SOURCE_DIR=""
+TEMP_GLEW_SOURCE_DIR=""
 TEMP_LIB_SOURCE_DIR=""
 TEMP_APP_SOURCE_DIR=""
 IS_DEV=false
@@ -37,6 +40,8 @@ fi
 SPGLIB_SOURCE_DIR=""
 SPGLIB_BUILD_DIR=""
 SPGLIB_BUILD_SUBDIR=""
+GLEW_SOURCE_DIR=""
+GLEW_BUILD_DIR=""
 LIB_SOURCE_DIR=""
 APP_SOURCE_DIR=""
 BUILD_DIR=""
@@ -107,7 +112,9 @@ parse_arguments() {
   # Set up derived variables
   GIT_REF="${VERSION#v}"
   SPGLIB_GIT_REF="v${SPGLIB_VERSION#v}"
+  GLEW_GIT_REF="glew-${GLEW_VERSION}"
   TEMP_SPGLIB_SOURCE_DIR="${SRC_DIR}/spglib-${SPGLIB_VERSION}"
+  TEMP_GLEW_SOURCE_DIR="${SRC_DIR}/glew-${GLEW_VERSION}"
   TEMP_LIB_SOURCE_DIR="${SRC_DIR}/avogadrolibs-${VERSION}"
   TEMP_APP_SOURCE_DIR="${SRC_DIR}/avogadroapp-${VERSION}"
 
@@ -122,6 +129,8 @@ parse_arguments() {
   SPGLIB_SOURCE_DIR="${TEMP_SPGLIB_SOURCE_DIR}"
   SPGLIB_BUILD_DIR="${HOME}/software/build/spglib/${SPGLIB_VERSION}"
   SPGLIB_BUILD_SUBDIR="${SPGLIB_BUILD_DIR}/build"
+  GLEW_SOURCE_DIR="${TEMP_GLEW_SOURCE_DIR}"
+  GLEW_BUILD_DIR="${HOME}/software/build/glew/${GLEW_VERSION}"
   LIB_SOURCE_DIR="${TEMP_LIB_SOURCE_DIR}"
   APP_SOURCE_DIR="${TEMP_APP_SOURCE_DIR}"
 }
@@ -250,6 +259,74 @@ install_spglib() {
   echo "Installing Spglib to ${SPGLIB_BUILD_DIR}..."
   cmake --install . || {
     echo "Error: Spglib installation failed" >&2
+    return 1
+  }
+}
+
+# Download GLEW repository
+#
+# Exit codes:
+#   0 - Success or already downloaded
+#   1 - Download failed
+download_glew() {
+  local temp_src="${TEMP_GLEW_SOURCE_DIR}"
+  local archive="${SRC_DIR}/glew-${GLEW_VERSION}.tar.gz"
+  local download_url="https://github.com/nigels-com/glew/releases/download/${GLEW_GIT_REF}/glew-${GLEW_VERSION}.tar.gz"
+
+  if [[ ! -d "${temp_src}" ]]; then
+    if [[ -f "${archive}" ]]; then
+      echo "Using existing archive: glew-${GLEW_VERSION}.tar.gz"
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+    else
+      echo "Downloading GLEW ${GLEW_VERSION}..."
+      wget -P "${SRC_DIR}" "${download_url}" -O "${archive}" || {
+        echo "Error: Download failed" >&2
+        return 1
+      }
+      tar -xf "${archive}" -C "${SRC_DIR}" || {
+        echo "Error: Extraction failed" >&2
+        return 1
+      }
+    fi
+  fi
+
+  GLEW_SOURCE_DIR="${temp_src}"
+
+  mkdir -p "${GLEW_BUILD_DIR}" || {
+    echo "Error: Failed to create GLEW_BUILD_DIR" >&2
+    return 1
+  }
+}
+
+# Build GLEW from source
+#
+# Exit codes:
+#   0 - Success
+#   1 - Build failed
+build_glew() {
+  cd "${GLEW_SOURCE_DIR}" || return 1
+
+  echo "Building GLEW..."
+  make GLEW_DEST="${GLEW_BUILD_DIR}" -j "$(nproc)" || {
+    echo "Error: GLEW build failed" >&2
+    return 1
+  }
+}
+
+# Install GLEW
+#
+# Exit codes:
+#   0 - Success
+#   1 - Installation failed
+install_glew() {
+  cd "${GLEW_SOURCE_DIR}" || return 1
+
+  echo "Installing GLEW to ${GLEW_BUILD_DIR}..."
+  make GLEW_DEST="${GLEW_BUILD_DIR}" install || {
+    echo "Error: GLEW installation failed" >&2
     return 1
   }
 }
@@ -397,9 +474,9 @@ configure_lib_build() {
 
   local cmake_prefix_path="${CMAKE_PREFIX_PATH:-}"
   if [[ -z "${cmake_prefix_path}" ]]; then
-    cmake_prefix_path="${SPGLIB_BUILD_DIR}:${HOME}/software/build"
+    cmake_prefix_path="${GLEW_BUILD_DIR}:${SPGLIB_BUILD_DIR}:${HOME}/software/build"
   else
-    cmake_prefix_path="${SPGLIB_BUILD_DIR}:${HOME}/software/build:${cmake_prefix_path}"
+    cmake_prefix_path="${GLEW_BUILD_DIR}:${SPGLIB_BUILD_DIR}:${HOME}/software/build:${cmake_prefix_path}"
   fi
 
   local pkg_config_path="${PKG_CONFIG_PATH:-}"
@@ -466,9 +543,9 @@ configure_app_build() {
 
   local cmake_prefix_path="${BUILD_DIR}"
   if [[ -n "${CMAKE_PREFIX_PATH:-}" ]]; then
-    cmake_prefix_path="${BUILD_DIR}:${SPGLIB_BUILD_DIR}:${CMAKE_PREFIX_PATH}"
+    cmake_prefix_path="${BUILD_DIR}:${GLEW_BUILD_DIR}:${SPGLIB_BUILD_DIR}:${CMAKE_PREFIX_PATH}"
   else
-    cmake_prefix_path="${BUILD_DIR}:${SPGLIB_BUILD_DIR}:${HOME}/software/build"
+    cmake_prefix_path="${BUILD_DIR}:${GLEW_BUILD_DIR}:${SPGLIB_BUILD_DIR}:${HOME}/software/build"
   fi
 
   local pkg_config_path="${PKG_CONFIG_PATH:-}"
@@ -613,6 +690,9 @@ main() {
   configure_spglib_build || return 1
   compile_spglib || return 1
   install_spglib || return 1
+  download_glew || return 1
+  build_glew || return 1
+  install_glew || return 1
   clone_lib_repository || return 1
   clone_app_repository || return 1
   configure_lib_build || return 1
