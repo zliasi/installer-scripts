@@ -19,6 +19,7 @@ Personal installer scripts for HPC software.
 - **install-orca.sh** - Install Orca (quantum chemistry) from precompiled binaries
 - **install-std2.sh** - Build and install std2 (quantum chemistry)
 - **install-xtb.sh** - Install xtb (extended tight-binding) from precompiled binaries
+- **install-xtb4stda.sh** - Build and install xtb4stda (ground state for std2) with Intel oneAPI
 
 ## Directory Structure
 
@@ -45,7 +46,8 @@ Scripts expect the following directory layout:
     │   └── default -> VERSION-PRECISION (symlink)
     ├── orca/VERSION/
     ├── std2/VERSION/
-    └── xtb/VERSION/
+    ├── xtb/VERSION/
+    └── xtb4stda/VERSION/
 ```
 
 Default symlinks (e.g., `openmpi/default`) allow version switching without updating environment variables. The symlink name is configurable via the `SYMLINK_NAME` parameter in each script (default: `default`).
