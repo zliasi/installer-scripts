@@ -106,7 +106,7 @@ download_source() {
 
   if [[ ! -d "${temp_src}" ]]; then
     if [[ -f "${archive}" ]]; then
-      echo "Using existing archive: molden-${VERSION}.tar.gz"
+      echo "Using existing archive: molden${VERSION}.tar.gz"
       tar -xf "${archive}" -C "${SRC_DIR}" || {
         echo "Error: Extraction failed" >&2
         return 1
