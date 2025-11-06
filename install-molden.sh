@@ -102,7 +102,7 @@ create_directories() {
 #   1 - Download failed
 download_source() {
   local temp_src="${TEMP_SOURCE_DIR}"
-  local archive="${SRC_DIR}/molden-${VERSION}.tar.gz"
+  local archive="${SRC_DIR}/molden${VERSION}.tar.gz"
   local download_url="https://ftp.science.ru.nl/Molden/molden${VERSION}.tar.gz"
 
   if [[ ! -d "${temp_src}" ]]; then
@@ -242,7 +242,7 @@ verify_installation() {
 # Exit codes:
 #   0 - Always succeeds (cleanup warnings non-fatal)
 archive_source() {
-  local archive="${SRC_DIR}/molden-${PATH_VERSION}.tar.gz"
+  local archive="${SRC_DIR}/molden${PATH_VERSION}.tar.gz"
 
   echo "Creating source archive..."
   tar -czf "${archive}" -C "${SRC_DIR}" "molden-${PATH_VERSION}" || {
