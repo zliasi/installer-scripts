@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Install Orca from precompiled binaries.
 #
-# Usage: install-orca.sh [VERSION]
+# Usage: install-orca.sh [VERSION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION - Orca version (default: 6.1.0)
+#   VERSION      - Orca version (default: 6.1.0)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Prerequisites:
 #   Source archive must exist at ~/software/src/external/orca-VERSION.tar.xz
@@ -16,6 +17,7 @@
 set -euo pipefail
 
 readonly VERSION="${1:-6.1.0}"
+readonly SYMLINK_NAME="${2:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/orca/${VERSION}"
 readonly ARCHIVE="orca-${VERSION}.tar.xz"
@@ -95,7 +97,7 @@ copy_binaries() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/orca/latest"
+  local default_link="${HOME}/software/build/orca/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${VERSION}" "${default_link}" || {

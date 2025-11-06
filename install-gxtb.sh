@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Install g-xTB from repository binaries and parameters.
 #
-# Usage: install-gxtb.sh [VERSION]
+# Usage: install-gxtb.sh [VERSION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION - Release version (e.g., 1.1.0) (default: 1.1.0)
+#   VERSION      - Release version (e.g., 1.1.0) (default: 1.1.0)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -13,6 +14,7 @@
 set -euo pipefail
 
 readonly VERSION="${1:-1.1.0}"
+readonly SYMLINK_NAME="${2:-default}"
 readonly GIT_REF="v${VERSION#v}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly TEMP_SOURCE_DIR="${SRC_DIR}/g-xtb-${VERSION}"
@@ -170,7 +172,7 @@ copy_binaries_and_parameters() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/gxtb/latest"
+  local default_link="${HOME}/software/build/gxtb/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {

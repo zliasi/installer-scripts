@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Install libxc with version management via symlinks.
 #
-# Usage: install-libxc.sh [VERSION]
+# Usage: install-libxc.sh [VERSION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION - libxc version (default: 7.0.0)
+#   VERSION      - libxc version (default: 7.0.0)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -13,6 +14,7 @@
 set -euo pipefail
 
 readonly VERSION="${1:-7.0.0}"
+readonly SYMLINK_NAME="${2:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/libxc/${VERSION}"
 readonly ARCHIVE="libxc-${VERSION}.tar.bz2"
@@ -105,7 +107,7 @@ build_and_install() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/libxc/latest"
+  local default_link="${HOME}/software/build/libxc/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${VERSION}" "${default_link}" || {

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Install OpenBLAS with version management via symlinks.
 #
-# Usage: install-openblas.sh [VERSION] [PRECISION]
+# Usage: install-openblas.sh [VERSION] [PRECISION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION   - OpenBLAS version (default: 0.3.30)
-#   PRECISION - Integer size: lp64 or ilp64 (default: lp64)
+#   VERSION      - OpenBLAS version (default: 0.3.30)
+#   PRECISION    - Integer size: lp64 or ilp64 (default: lp64)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -15,6 +16,7 @@ set -euo pipefail
 
 readonly VERSION="${1:-0.3.30}"
 readonly PRECISION="${2:-lp64}"
+readonly SYMLINK_NAME="${3:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/openblas/${VERSION}-${PRECISION}"
 readonly ARCHIVE="OpenBLAS-${VERSION}.tar.gz"
@@ -107,7 +109,7 @@ build_and_install() {
 #   0 - Symlink created successfully
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/openblas/latest"
+  local default_link="${HOME}/software/build/openblas/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${VERSION}-${PRECISION}" "${default_link}" || {

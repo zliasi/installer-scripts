@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Build and install std2 from source with GNU Fortran and Make.
 #
-# Usage: install-std2.sh [VERSION]
+# Usage: install-std2.sh [VERSION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION - Release version (e.g., 2.0.1) (default: 2.0.1)
+#   VERSION      - Release version (e.g., 2.0.1) (default: 2.0.1)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Notes:
 #   std2 uses Make build system with GNU Fortran (gfortran)
@@ -20,6 +21,7 @@ set -euo pipefail
 readonly SRC_DIR="${HOME}/software/src/external"
 
 VERSION="${1:-2.0.1}"
+SYMLINK_NAME="${2:-default}"
 GIT_REF="v${VERSION#v}"
 TEMP_SOURCE_DIR="${SRC_DIR}/std2-${VERSION}"
 IS_DEV=false
@@ -237,7 +239,7 @@ install_executable() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/std2/latest"
+  local default_link="${HOME}/software/build/std2/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {

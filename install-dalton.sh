@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Install Dalton with version management via symlinks.
 #
-# Usage: install-dalton.sh [OPTIONS] [PRECISION]
+# Usage: install-dalton.sh [OPTIONS] [PRECISION] [SYMLINK_NAME]
 #
 # Arguments:
-#   PRECISION - Integer size: lp64 or ilp64 (default: lp64)
+#   PRECISION    - Integer size: lp64 or ilp64 (default: lp64)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Options:
 #   --dev           - Install latest development version (uses main branch)
@@ -24,6 +25,7 @@ set -euo pipefail
 
 VERSION="2020.1"
 PRECISION="lp64"
+SYMLINK_NAME="default"
 USE_DEV=false
 GIT_REF=""
 IS_DEV=false
@@ -34,6 +36,7 @@ IS_DEV=false
 #   0 - Arguments parsed successfully
 #   1 - Invalid arguments
 parse_arguments() {
+  local arg_count=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --dev)
@@ -51,8 +54,11 @@ parse_arguments() {
         return 1
         ;;
       *)
-        if [[ "${PRECISION}" == "lp64" ]] && [[ "$1" =~ ^(lp64|ilp64)$ ]]; then
+        arg_count=$((arg_count + 1))
+        if [[ ${arg_count} -eq 1 ]] && [[ "$1" =~ ^(lp64|ilp64)$ ]]; then
           PRECISION="$1"
+        elif [[ ${arg_count} -eq 2 ]]; then
+          SYMLINK_NAME="$1"
         else
           echo "Error: Unexpected argument: $1" >&2
           return 1
@@ -70,8 +76,8 @@ BUILD_DIR=""
 TEMP_SOURCE_DIR=""
 PATH_VERSION=""
 
-readonly OPENMPI_DIR="${HOME}/software/build/openmpi/latest"
-readonly OPENBLAS_DIR="${HOME}/software/build/openblas/latest"
+readonly OPENMPI_DIR="${HOME}/software/build/openmpi/default"
+readonly OPENBLAS_DIR="${HOME}/software/build/openblas/default"
 
 # Extract version string from repository files
 #
@@ -281,7 +287,7 @@ build_project() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/dalton/latest"
+  local default_link="${HOME}/software/build/dalton/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}-${PRECISION}" "${default_link}" || {

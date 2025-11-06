@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Build and install Avogadro from source with CMake.
 #
-# Usage: install-avogadro.sh [VERSION]
+# Usage: install-avogadro.sh [VERSION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION - Release version (e.g., 1.102.1) (default: 1.102.1)
+#   VERSION      - Release version (e.g., 1.102.1) (default: 1.102.1)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -15,6 +16,7 @@ set -euo pipefail
 readonly SRC_DIR="${HOME}/software/src/external"
 
 VERSION="1.102.1"
+SYMLINK_NAME="default"
 GIT_REF=""
 TEMP_SOURCE_DIR=""
 IS_DEV=false
@@ -71,6 +73,7 @@ determine_dev_version() {
 #   0 - Arguments parsed successfully
 #   1 - Invalid arguments
 parse_arguments() {
+  local arg_count=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --*)
@@ -78,8 +81,11 @@ parse_arguments() {
         return 1
         ;;
       *)
-        if [[ -z "${VERSION}" ]] || [[ "${VERSION}" == "1.102.1" ]]; then
+        arg_count=$((arg_count + 1))
+        if [[ ${arg_count} -eq 1 ]]; then
           VERSION="$1"
+        elif [[ ${arg_count} -eq 2 ]]; then
+          SYMLINK_NAME="$1"
         else
           echo "Error: Unexpected argument: $1" >&2
           return 1
@@ -258,7 +264,7 @@ install_executable() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/avogadro/latest"
+  local default_link="${HOME}/software/build/avogadro/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {

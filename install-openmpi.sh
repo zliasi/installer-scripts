@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Install OpenMPI with version management via symlinks.
 #
-# Usage: install-openmpi.sh [VERSION] [PRECISION]
+# Usage: install-openmpi.sh [VERSION] [PRECISION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION   - OpenMPI version (default: 5.0.8)
-#   PRECISION - Integer size: lp64 or ilp64 (default: lp64)
+#   VERSION      - OpenMPI version (default: 5.0.8)
+#   PRECISION    - Integer size: lp64 or ilp64 (default: lp64)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -15,6 +16,7 @@ set -euo pipefail
 
 readonly VERSION="${1:-5.0.8}"
 readonly PRECISION="${2:-lp64}"
+readonly SYMLINK_NAME="${3:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/openmpi/${VERSION}-${PRECISION}"
 readonly ARCHIVE="openmpi-${VERSION}.tar.gz"
@@ -101,7 +103,7 @@ build_and_install() {
 #   0 - Symlink created successfully
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/openmpi/latest"
+  local default_link="${HOME}/software/build/openmpi/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${VERSION}-${PRECISION}" "${default_link}" || {

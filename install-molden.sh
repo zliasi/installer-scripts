@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Build and install MOLDEN (graphical molecular visualization) from source.
 #
-# Usage: install-molden.sh [VERSION]
+# Usage: install-molden.sh [VERSION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION - MOLDEN version (e.g., 7.3) (default: 7.3)
+#   VERSION      - MOLDEN version (e.g., 7.3) (default: 7.3)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Notes:
 #   Compiles gmolden (graphical version) from source
@@ -19,6 +20,7 @@ set -euo pipefail
 readonly SRC_DIR="${HOME}/software/src/external"
 
 VERSION="${1:-7.3}"
+SYMLINK_NAME="${2:-default}"
 GIT_REF=""
 TEMP_SOURCE_DIR=""
 IS_DEV=false
@@ -211,7 +213,7 @@ install_executables() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/molden/latest"
+  local default_link="${HOME}/software/build/molden/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {

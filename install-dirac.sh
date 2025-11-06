@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Build and install DIRAC from source with CMake and MPI support.
 #
-# Usage: install-dirac.sh [VERSION] [OPTIONS]
+# Usage: install-dirac.sh [VERSION] [SYMLINK_NAME] [OPTIONS]
 #
 # Arguments:
-#   VERSION - Release version (e.g., 25.0) (default: 25.0)
+#   VERSION      - Release version (e.g., 25.0) (default: 25.0)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Options:
 #   --serial                    - Build without MPI (serial only)
@@ -24,6 +25,7 @@ readonly OPENMPI_HOME="${HOME}/software/build/openmpi"
 readonly OPENBLAS_HOME="${HOME}/software/build/openblas"
 
 VERSION="25.0"
+SYMLINK_NAME="default"
 OPENMPI_VERSION="default"
 ENABLE_MPI=true
 GIT_REF=""
@@ -85,6 +87,7 @@ determine_dev_version() {
 #   0 - Arguments parsed successfully
 #   1 - Invalid arguments
 parse_arguments() {
+  local arg_count=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --serial)
@@ -100,8 +103,11 @@ parse_arguments() {
         return 1
         ;;
       *)
-        if [[ -z "${VERSION}" ]] || [[ "${VERSION}" == "25.0" ]]; then
+        arg_count=$((arg_count + 1))
+        if [[ ${arg_count} -eq 1 ]]; then
           VERSION="$1"
+        elif [[ ${arg_count} -eq 2 ]]; then
+          SYMLINK_NAME="$1"
         else
           echo "Error: Unexpected argument: $1" >&2
           return 1
@@ -162,7 +168,7 @@ check_dependencies() {
 
   if [[ "${ENABLE_MPI}" == "true" ]]; then
     if [[ "${OPENMPI_VERSION}" == "default" ]]; then
-      openmpi_dir="${OPENMPI_HOME}/latest"
+      openmpi_dir="${OPENMPI_HOME}/default"
     else
       openmpi_dir="${OPENMPI_HOME}/${OPENMPI_VERSION}-lp64"
     fi
@@ -174,7 +180,7 @@ check_dependencies() {
     }
   fi
 
-  openblas_dir="${OPENBLAS_HOME}/latest"
+  openblas_dir="${OPENBLAS_HOME}/default"
   [[ -d "${openblas_dir}" ]] || {
     echo "Error: OpenBLAS not found at ${openblas_dir}" >&2
     echo "Install with: ./install-openblas.sh" >&2
@@ -256,11 +262,11 @@ configure_build() {
   local openmpi_dir
   local openblas_dir
 
-  openblas_dir="${OPENBLAS_HOME}/latest"
+  openblas_dir="${OPENBLAS_HOME}/default"
 
   if [[ "${ENABLE_MPI}" == "true" ]]; then
     if [[ "${OPENMPI_VERSION}" == "default" ]]; then
-      openmpi_dir="${OPENMPI_HOME}/latest"
+      openmpi_dir="${OPENMPI_HOME}/default"
     else
       openmpi_dir="${OPENMPI_HOME}/${OPENMPI_VERSION}-lp64"
     fi
@@ -296,11 +302,11 @@ compile_project() {
   local openmpi_dir
   local openblas_dir
 
-  openblas_dir="${OPENBLAS_HOME}/latest"
+  openblas_dir="${OPENBLAS_HOME}/default"
 
   if [[ "${ENABLE_MPI}" == "true" ]]; then
     if [[ "${OPENMPI_VERSION}" == "default" ]]; then
-      openmpi_dir="${OPENMPI_HOME}/latest"
+      openmpi_dir="${OPENMPI_HOME}/default"
     else
       openmpi_dir="${OPENMPI_HOME}/${OPENMPI_VERSION}-lp64"
     fi
@@ -345,7 +351,7 @@ install_executable() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/dirac/latest"
+  local default_link="${HOME}/software/build/dirac/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {
@@ -393,11 +399,11 @@ print_setup() {
   local openmpi_dir
   local openblas_dir
 
-  openblas_dir="${OPENBLAS_HOME}/latest"
+  openblas_dir="${OPENBLAS_HOME}/default"
 
   if [[ "${ENABLE_MPI}" == "true" ]]; then
     if [[ "${OPENMPI_VERSION}" == "default" ]]; then
-      openmpi_dir="${OPENMPI_HOME}/latest"
+      openmpi_dir="${OPENMPI_HOME}/default"
     else
       openmpi_dir="${OPENMPI_HOME}/${OPENMPI_VERSION}-lp64"
     fi

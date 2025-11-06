@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Install xtb from precompiled binaries.
 #
-# Usage: install-xtb.sh [VERSION]
+# Usage: install-xtb.sh [VERSION] [SYMLINK_NAME]
 #
 # Arguments:
-#   VERSION - xtb version (default: 6.7.1)
+#   VERSION      - xtb version (default: 6.7.1)
+#   SYMLINK_NAME - Name for symlink (default: default)
 #
 # Paths:
 #   Source: ~/software/src/external
@@ -13,6 +14,7 @@
 set -euo pipefail
 
 readonly VERSION="${1:-6.7.1}"
+readonly SYMLINK_NAME="${2:-default}"
 readonly SRC_DIR="${HOME}/software/src/external"
 readonly BUILD_DIR="${HOME}/software/build/xtb/${VERSION}"
 readonly ARCHIVE="xtb-${VERSION}-linux-x86_64.tar.xz"
@@ -86,7 +88,7 @@ copy_binaries() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/xtb/latest"
+  local default_link="${HOME}/software/build/xtb/${SYMLINK_NAME}"
 
   rm -f "${default_link}"
   ln -sfn "${VERSION}" "${default_link}" || {
