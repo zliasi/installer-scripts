@@ -149,7 +149,7 @@ install_paw_datasets() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/gpaw/default"
+  local default_link="${HOME}/software/build/gpaw/latest"
 
   rm -f "${default_link}"
   ln -sfn "${VERSION}" "${default_link}" || {

@@ -237,7 +237,7 @@ install_executable() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/std2/default"
+  local default_link="${HOME}/software/build/std2/latest"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {

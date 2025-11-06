@@ -170,7 +170,7 @@ copy_binaries_and_parameters() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/gxtb/default"
+  local default_link="${HOME}/software/build/gxtb/latest"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {

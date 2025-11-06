@@ -101,7 +101,7 @@ build_and_install() {
 #   0 - Symlink created successfully
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/openmpi/default"
+  local default_link="${HOME}/software/build/openmpi/latest"
 
   rm -f "${default_link}"
   ln -sfn "${VERSION}-${PRECISION}" "${default_link}" || {

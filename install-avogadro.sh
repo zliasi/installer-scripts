@@ -258,7 +258,7 @@ install_executable() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/avogadro/default"
+  local default_link="${HOME}/software/build/avogadro/latest"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {

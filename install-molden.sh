@@ -211,7 +211,7 @@ install_executables() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/molden/default"
+  local default_link="${HOME}/software/build/molden/latest"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {

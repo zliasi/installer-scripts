@@ -162,7 +162,7 @@ check_dependencies() {
 
   if [[ "${ENABLE_MPI}" == "true" ]]; then
     if [[ "${OPENMPI_VERSION}" == "default" ]]; then
-      openmpi_dir="${OPENMPI_HOME}/default"
+      openmpi_dir="${OPENMPI_HOME}/latest"
     else
       openmpi_dir="${OPENMPI_HOME}/${OPENMPI_VERSION}-lp64"
     fi
@@ -174,7 +174,7 @@ check_dependencies() {
     }
   fi
 
-  openblas_dir="${OPENBLAS_HOME}/default"
+  openblas_dir="${OPENBLAS_HOME}/latest"
   [[ -d "${openblas_dir}" ]] || {
     echo "Error: OpenBLAS not found at ${openblas_dir}" >&2
     echo "Install with: ./install-openblas.sh" >&2
@@ -256,11 +256,11 @@ configure_build() {
   local openmpi_dir
   local openblas_dir
 
-  openblas_dir="${OPENBLAS_HOME}/default"
+  openblas_dir="${OPENBLAS_HOME}/latest"
 
   if [[ "${ENABLE_MPI}" == "true" ]]; then
     if [[ "${OPENMPI_VERSION}" == "default" ]]; then
-      openmpi_dir="${OPENMPI_HOME}/default"
+      openmpi_dir="${OPENMPI_HOME}/latest"
     else
       openmpi_dir="${OPENMPI_HOME}/${OPENMPI_VERSION}-lp64"
     fi
@@ -296,11 +296,11 @@ compile_project() {
   local openmpi_dir
   local openblas_dir
 
-  openblas_dir="${OPENBLAS_HOME}/default"
+  openblas_dir="${OPENBLAS_HOME}/latest"
 
   if [[ "${ENABLE_MPI}" == "true" ]]; then
     if [[ "${OPENMPI_VERSION}" == "default" ]]; then
-      openmpi_dir="${OPENMPI_HOME}/default"
+      openmpi_dir="${OPENMPI_HOME}/latest"
     else
       openmpi_dir="${OPENMPI_HOME}/${OPENMPI_VERSION}-lp64"
     fi
@@ -345,7 +345,7 @@ install_executable() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/dirac/default"
+  local default_link="${HOME}/software/build/dirac/latest"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}" "${default_link}" || {
@@ -393,11 +393,11 @@ print_setup() {
   local openmpi_dir
   local openblas_dir
 
-  openblas_dir="${OPENBLAS_HOME}/default"
+  openblas_dir="${OPENBLAS_HOME}/latest"
 
   if [[ "${ENABLE_MPI}" == "true" ]]; then
     if [[ "${OPENMPI_VERSION}" == "default" ]]; then
-      openmpi_dir="${OPENMPI_HOME}/default"
+      openmpi_dir="${OPENMPI_HOME}/latest"
     else
       openmpi_dir="${OPENMPI_HOME}/${OPENMPI_VERSION}-lp64"
     fi

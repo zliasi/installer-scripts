@@ -105,7 +105,7 @@ build_and_install() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/libxc/default"
+  local default_link="${HOME}/software/build/libxc/latest"
 
   rm -f "${default_link}"
   ln -sfn "${VERSION}" "${default_link}" || {

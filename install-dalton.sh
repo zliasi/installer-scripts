@@ -70,8 +70,8 @@ BUILD_DIR=""
 TEMP_SOURCE_DIR=""
 PATH_VERSION=""
 
-readonly OPENMPI_DIR="${HOME}/software/build/openmpi/default"
-readonly OPENBLAS_DIR="${HOME}/software/build/openblas/default"
+readonly OPENMPI_DIR="${HOME}/software/build/openmpi/latest"
+readonly OPENBLAS_DIR="${HOME}/software/build/openblas/latest"
 
 # Extract version string from repository files
 #
@@ -281,7 +281,7 @@ build_project() {
 #   0 - Success
 #   1 - Failed to create symlink
 setup_symlink() {
-  local default_link="${HOME}/software/build/dalton/default"
+  local default_link="${HOME}/software/build/dalton/latest"
 
   rm -f "${default_link}"
   ln -sfn "${PATH_VERSION}-${PRECISION}" "${default_link}" || {

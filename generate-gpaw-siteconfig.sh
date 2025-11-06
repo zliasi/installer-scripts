@@ -4,9 +4,9 @@
 # Usage: generate-gpaw-siteconfig.sh [OPTIONS]
 #
 # Options:
-#   --gpaw-version VERSION      - GPAW version or 'default' (default: 25.1.0)
+#   --gpaw-version VERSION      - GPAW version or 'default' (default: 25.7.0)
 #   --openmpi-version VERSION   - OpenMPI version or 'default' (default: 5.0.8)
-#   --openblas-version VERSION  - OpenBLAS version or 'default' (default: 0.3.28)
+#   --openblas-version VERSION  - OpenBLAS version or 'default' (default: 0.3.30)
 #   --libxc-version VERSION     - libxc version or 'default' (optional, default: 7.0.0)
 #   --precision PRECISION       - Integer size: lp64 or ilp64 (default: lp64)
 #   --output FILE               - Output file path (default: prints to stdout)
@@ -28,9 +28,9 @@ readonly OPENMPI_HOME="${HOME}/software/build/openmpi"
 readonly OPENBLAS_HOME="${HOME}/software/build/openblas"
 readonly LIBXC_HOME="${HOME}/software/build/libxc"
 
-GPAW_VERSION="25.1.0"
+GPAW_VERSION="25.7.0"
 OPENMPI_VERSION="5.0.8"
-OPENBLAS_VERSION="0.3.28"
+OPENBLAS_VERSION="0.3.30"
 LIBXC_VERSION="7.0.0"
 PRECISION="lp64"
 OUTPUT_FILE=""
@@ -89,14 +89,14 @@ resolve_dependency_path() {
   local precision="$4"
 
   if [[ "${version}" == "default" ]]; then
-    local link_path="${home}/software/build/${software}/default"
+    local link_path="${home}/software/build/${software}/latest"
     if [[ -L "${link_path}" ]]; then
       local target
       target=$(readlink "${link_path}")
       echo "${home}/software/build/${software}/${target}"
       return 0
     else
-      echo "Error: default symlink not found at ${link_path}" >&2
+      echo "Error: latest symlink not found at ${link_path}" >&2
       return 1
     fi
   else
